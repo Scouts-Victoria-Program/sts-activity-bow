@@ -11,9 +11,6 @@ services:
       - postgresqldata:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=root
-    depends_on:
-      - kea
-      - bind
   app:
     build: ./webapp
     restart: unless-stopped

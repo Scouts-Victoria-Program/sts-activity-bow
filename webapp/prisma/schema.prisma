@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id           Int          @id @default(autoincrement())
+  name         String       @unique
+  flagZoneLat  Float?
+  flagZoneLong Float?
+  logs         TrackerLog[]
+  flags        Flag[]
+  actions      Action[]
+}
+
+model Tracker {
+  id            Int          @id @default(autoincrement())
+  name          String       @unique
+  scoreModifier Float
+  logs          TrackerLog[]
+  flags         Flag[]
+}
+
+model TrackerLog {
+  id        Int      @id @default(autoincrement())
+  datetime  DateTime
+  lat       Float
+  long      Float
+  tracker   Tracker  @relation(fields: [trackerId], references: [id])
+  trackerId Int
+  team      Team?    @relation(fields: [teamId], references: [id])
+  teamId    Int?
+  distance  Int
+}
+
+model Flag {
+  id            Int      @id @default(autoincrement())
+  datetime      DateTime
+  windowSize    Int
+  scoreModifier Int
+  lat           Float
+  long          Float
+  tracker       Tracker  @relation(fields: [trackerId], references: [id])
+  trackerId     Int
+  team          Team?    @relation(fields: [teamId], references: [id])
+  teamId        Int?
+  distance      Int
+}
+
+model Action {
+  id          Int      @id @default(autoincrement())
+  datetime    DateTime
+  action      String
+  score       Float
+  description String
+  team        Team     @relation(fields: [teamId], references: [id])
+  teamId      Int
+}

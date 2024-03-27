@@ -1,0 +1,32 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "start": "node  .output/server/index.mjs",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "docker-start": "npx prisma migrate && npm run start"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "latest",
+    "@types/color-hash": "^1.0.5",
+    "@types/luxon": "^3.3.5",
+    "nuxt": "^3.8.1",
+    "prisma": "^5.6.0",
+    "vue": "^3.3.8",
+    "vue-router": "^4.2.5"
+  },
+  "dependencies": {
+    "@fawmi/vue-google-maps": "^0.9.79",
+    "@prisma/client": "^5.6.0",
+    "color-hash": "^2.0.2",
+    "luxon": "^3.4.4",
+    "mqtt": "^5.2.2",
+    "nuxt3-socket.io": "^0.2.0",
+    "socket.io-client": "^4.7.2"
+  }
+}

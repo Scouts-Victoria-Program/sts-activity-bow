@@ -2,7 +2,7 @@
 import type {
   TrackerLocationData,
   TrackerLocationUpdateInput,
-} from "~/server/types/trackerlocation";
+} from "~/server/types/trackerLocation";
 const { useUpdateTrackerLocation } = useTrackerLocation();
 const { update, loading, error, errorMessage } = useUpdateTrackerLocation();
 

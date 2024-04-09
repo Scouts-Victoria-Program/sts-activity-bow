@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrackerLocationCreateInput } from "~/server/types/trackerlocation";
+import type { TrackerLocationCreateInput } from "~/server/types/trackerLocation";
 import type { BaseData } from "~/server/types/base";
 import type { TrackerData } from "~/server/types/tracker";
 

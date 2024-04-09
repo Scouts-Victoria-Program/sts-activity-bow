@@ -2,7 +2,7 @@ import type {
   TrackerLocationData,
   TrackerLocationCreateInput,
   TrackerLocationUpdateInput,
-} from "~/server/types/trackerlocation";
+} from "~/server/types/trackerLocation";
 import { usePageControls } from "./pageControls";
 import { DateTime } from "luxon";
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrackerLocationData } from "~/server/types/trackerlocation";
+import type { TrackerLocationData } from "~/server/types/trackerLocation";
 const { useDeleteTrackerLocation } = useTrackerLocation();
 const { deleteFn, deleted, loading, error, errorMessage } =
   useDeleteTrackerLocation();

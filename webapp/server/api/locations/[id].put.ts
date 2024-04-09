@@ -3,7 +3,7 @@ import prisma from "~/server/prisma";
 import {
   TrackerLocationUpdateInput,
   TrackerLocationData,
-} from "~/server/types/trackerlocation";
+} from "~/server/types/trackerLocation";
 
 import { useSocketServer } from "~/server/utils/websocket";
 const { sendMessage } = useSocketServer();

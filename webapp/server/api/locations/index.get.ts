@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { TrackerLocationData } from "~/server/types/trackerlocation";
+import { TrackerLocationData } from "~/server/types/trackerLocation";
 
 interface ResponseSuccess {
   success: true;

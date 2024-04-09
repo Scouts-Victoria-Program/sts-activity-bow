@@ -32,7 +32,7 @@ interface TrackerLocationToInsert {
 }
 
 import { useSocketServer } from "~/server/utils/websocket";
-import { TrackerLocationData } from "~/server/types/trackerlocation";
+import { TrackerLocationData } from "~/server/types/trackerLocation";
 const { sendMessage } = useSocketServer();
 
 const config = useRuntimeConfig();

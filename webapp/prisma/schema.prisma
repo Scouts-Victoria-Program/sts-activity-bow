@@ -15,7 +15,6 @@ model Base {
   name         String       @unique
   lat          Float?
   long         Float?
-  logs         TrackerLog[]
   locations    TrackerLocation[]
   actions      Action[]
 }
@@ -24,20 +23,7 @@ model Tracker {
   id            Int          @id @default(autoincrement())
   name          String       @unique
   scoreModifier Float
-  logs          TrackerLog[]
   locations     TrackerLocation[]
-}
-
-model TrackerLog {
-  id        Int      @id @default(autoincrement())
-  datetime  DateTime
-  lat       Float
-  long      Float
-  tracker   Tracker  @relation(fields: [trackerId], references: [id])
-  trackerId Int
-  base      Base?    @relation(fields: [baseId], references: [id])
-  baseId    Int?
-  distance  Int
 }
 
 model TrackerLocation {

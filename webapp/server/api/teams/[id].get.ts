@@ -1,10 +1,10 @@
-import { Prisma, Team } from "@prisma/client";
+import { Prisma, Base } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { TeamData } from "~/server/types/team";
+import { BaseData } from "~/server/types/base";
 
 interface ResponseSuccess {
   success: true;
-  team: TeamData;
+  base: BaseData;
 }
 interface ResponseFailure {
   success: false;
@@ -18,16 +18,16 @@ export default defineEventHandler(
     }
 
     try {
-      const team = await prisma.team.findUniqueOrThrow({
+      const base = await prisma.base.findUniqueOrThrow({
         where: { id: Number(event.context.params.id) },
       });
-      const teamData: TeamData = {
-        id: team.id,
-        name: team.name,
-        flagZoneLat: team.flagZoneLat,
-        flagZoneLong: team.flagZoneLong,
+      const baseData: BaseData = {
+        id: base.id,
+        name: base.name,
+        flagZoneLat: base.flagZoneLat,
+        flagZoneLong: base.flagZoneLong,
       };
-      return { success: true, team: teamData };
+      return { success: true, base: baseData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

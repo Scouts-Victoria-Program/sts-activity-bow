@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { TeamData } from "~/server/types/team";
-const { useDeleteTeam } = useTeam();
-const { deleteFn, deleted, loading, error, errorMessage } = useDeleteTeam();
+import type { BaseData } from "~/server/types/base";
+const { useDeleteBase } = useBase();
+const { deleteFn, deleted, loading, error, errorMessage } = useDeleteBase();
 
 const emit = defineEmits<{
   deleted: [id: number];
 }>();
 const props = defineProps<{
-  team: TeamData;
+  base: BaseData;
 }>();
 
 async function submitDelete() {
-  const teamId = await deleteFn(props.team.id);
+  const baseId = await deleteFn(props.base.id);
 
-  if (teamId) {
-    emit("deleted", teamId);
+  if (baseId) {
+    emit("deleted", baseId);
   }
 }
 </script>
@@ -22,11 +22,11 @@ async function submitDelete() {
 <template>
   <form>
     <fieldset>
-      <legend>Delete Team</legend>
+      <legend>Delete Base</legend>
 
       <div style="color: red">
-        Just checking that you are wanting to delete the team:<br />
-        "{{ team.name }}" [id={{ team.id }}]
+        Just checking that you are wanting to delete the base:<br />
+        "{{ base.name }}" [id={{ base.id }}]
       </div>
 
       <div v-if="error">{{ errorMessage }}</div>
@@ -36,7 +36,7 @@ async function submitDelete() {
           @click="submitDelete"
           :disabled="loading || deleted"
         >
-          Delete Team
+          Delete Base
         </button>
       </div>
     </fieldset>

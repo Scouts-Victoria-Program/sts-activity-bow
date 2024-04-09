@@ -1,7 +1,7 @@
 import { ActionData } from "./action";
 import { FlagData } from "./flag";
 import { LogData } from "./log";
-import { TeamData } from "./team";
+import { BaseData } from "./base";
 import { TrackerData } from "./tracker";
 
 export const SocketServerRoomToken = "socket-server-room-token";
@@ -9,7 +9,7 @@ export const SocketServerRoomToken = "socket-server-room-token";
 export type MessageData =
   | MessageDataAction
   | MessageDataFlag
-  | MessageDataTeam
+  | MessageDataBase
   | MessageDataTracker
   | MessageDataLog
   | MessageDataStatus;
@@ -38,16 +38,16 @@ export type MessageDataFlag =
       flagId: number;
     };
 
-export type MessageDataTeam =
+export type MessageDataBase =
   | {
-      type: "team";
+      type: "base";
       action: "create" | "update";
-      team: TeamData;
+      base: BaseData;
     }
   | {
-      type: "team";
+      type: "base";
       action: "delete";
-      teamId: number;
+      baseId: number;
     };
 
 export type MessageDataTracker =

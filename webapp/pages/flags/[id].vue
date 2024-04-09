@@ -74,7 +74,7 @@ function flagDeleted(id: number) {
     <div>Lat: {{ data.flag.lat }}</div>
     <div>Long: {{ data.flag.long }}</div>
     <div>TrackerId: {{ data.flag.trackerId }}</div>
-    <div>TeamId: {{ data.flag.teamId }}</div>
+    <div>BaseId: {{ data.flag.baseId }}</div>
     <div>Distance: {{ data.flag.distance }}</div>
   </div>
   <div v-else>loading or error</div>

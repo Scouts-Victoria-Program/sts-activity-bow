@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { TeamData } from "~/server/types/team";
+import { BaseData } from "~/server/types/base";
 
 interface ResponseSuccess {
   success: true;
@@ -8,7 +8,7 @@ interface ResponseSuccess {
   perPage: number;
   maxPages: number;
   maxItems: number;
-  teams: TeamData[];
+  bases: BaseData[];
 }
 interface ResponseFailure {
   success: false;
@@ -23,27 +23,27 @@ export default defineEventHandler(
       const page = Number(params.page) || 1;
       const perPage = 30;
 
-      const teams = await prisma.team.findMany({
+      const bases = await prisma.base.findMany({
         skip: perPage * (page - 1),
         take: perPage,
       });
 
-      const teamsCount = await prisma.team.count({});
+      const basesCount = await prisma.base.count({});
 
       return {
         success: true,
         page: page,
         perPage: perPage,
-        maxPages: Math.ceil(teamsCount / perPage),
-        maxItems: teamsCount,
-        teams: teams.map((team) => {
-          const teamData: TeamData = {
-            id: team.id,
-            name: team.name,
-            flagZoneLat: team.flagZoneLat,
-            flagZoneLong: team.flagZoneLong,
+        maxPages: Math.ceil(basesCount / perPage),
+        maxItems: basesCount,
+        bases: bases.map((base) => {
+          const baseData: BaseData = {
+            id: base.id,
+            name: base.name,
+            flagZoneLat: base.flagZoneLat,
+            flagZoneLong: base.flagZoneLong,
           };
-          return teamData;
+          return baseData;
         }),
       };
     } catch (e) {

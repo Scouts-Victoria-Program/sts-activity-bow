@@ -7,10 +7,10 @@ const props = defineProps<{
 }>();
 const log = props.log;
 
-const { useFetchTeam } = useTeam();
+const { useFetchBase } = useBase();
 const { useFetchTracker } = useTracker();
 
-const { team, loading: teamLoading } = useFetchTeam(log.teamId);
+const { base, loading: baseLoading } = useFetchBase(log.baseId);
 const { tracker, loading: trackerLoading } = useFetchTracker(log.trackerId);
 </script>
 
@@ -33,9 +33,9 @@ const { tracker, loading: trackerLoading } = useFetchTracker(log.trackerId);
       </NuxtLink>
     </td>
     <td>
-      <NuxtLink :to="`/teams/${log.teamId}`">
-        <span v-if="!teamLoading">
-          {{ team?.name }}
+      <NuxtLink :to="`/bases/${log.baseId}`">
+        <span v-if="!baseLoading">
+          {{ base?.name }}
         </span>
         <span v-else>Loading</span>
       </NuxtLink>

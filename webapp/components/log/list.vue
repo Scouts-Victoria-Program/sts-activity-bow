@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 import type { TrackerData } from "~/server/types/tracker";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
   tracker?: TrackerData;
 }>();
 
 const { fields, useUiFilterControls } = useListFilters<{
-  teamId: Ref<number | undefined>;
+  baseId: Ref<number | undefined>;
   trackerId: Ref<number | undefined>;
 }>({
-  teamId: ref(props.team?.id),
+  baseId: ref(props.base?.id),
   trackerId: ref(props.tracker?.id),
 });
 const uiFilterControls = useUiFilterControls();
@@ -20,7 +20,7 @@ const { useListLogs } = useLog();
 const { displayLogs, uiPageControls, refresh, loading, error, errorMessage } =
   useListLogs({
     where: {
-      teamId: fields.teamId,
+      baseId: fields.baseId,
       trackerId: fields.trackerId,
     },
   });
@@ -40,7 +40,7 @@ function logCreated(newId: number) {
       v-if="showLogCreate"
       @created="logCreated"
       :tracker="props.tracker"
-      :team="props.team"
+      :base="props.base"
     ></LogCreate>
 
     <UiListControls>
@@ -65,7 +65,7 @@ function logCreated(newId: number) {
           <th>lat</th>
           <th>long</th>
           <th>tracker</th>
-          <th>team</th>
+          <th>base</th>
           <th>distance</th>
           <th>actions</th>
         </tr>

@@ -18,7 +18,7 @@ interface ResponseFailure {
 interface QueryParams {
   page: string;
   trackerId: string;
-  teamId: string;
+  baseId: string;
 }
 
 export default defineEventHandler(
@@ -38,8 +38,8 @@ export default defineEventHandler(
         },
         where: {
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
-          teamId: params.teamId ? Number(params.teamId) : undefined,
-          distance: params.teamId
+          baseId: params.baseId ? Number(params.baseId) : undefined,
+          distance: params.baseId
             ? { lte: config.public.flagCapturedDistance }
             : undefined,
         },
@@ -48,8 +48,8 @@ export default defineEventHandler(
       const flagsCount = await prisma.flag.count({
         where: {
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
-          teamId: params.teamId ? Number(params.teamId) : undefined,
-          distance: params.teamId
+          baseId: params.baseId ? Number(params.baseId) : undefined,
+          distance: params.baseId
             ? { lte: config.public.flagCapturedDistance }
             : undefined,
         },
@@ -70,7 +70,7 @@ export default defineEventHandler(
             lat: flag.lat,
             long: flag.long,
             trackerId: flag.trackerId,
-            teamId: flag.teamId,
+            baseId: flag.baseId,
             distance: flag.distance,
           };
           return flagData;

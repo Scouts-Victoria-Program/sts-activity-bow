@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 import type { TrackerData } from "~/server/types/tracker";
 import { DateTime } from "luxon";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
   tracker?: TrackerData;
 }>();
 
 const { fields, useUiFilterControls } = useListFilters<{
-  teamId: Ref<number | undefined>;
+  baseId: Ref<number | undefined>;
   trackerId: Ref<number | undefined>;
 }>({
-  teamId: ref(props.team?.id),
+  baseId: ref(props.base?.id),
   trackerId: ref(props.tracker?.id),
 });
 const uiFilterControls = useUiFilterControls();
@@ -21,7 +21,7 @@ const { useListFlags } = useFlag();
 const { displayFlags, uiPageControls, refresh, loading, error, errorMessage } =
   useListFlags({
     where: {
-      teamId: fields.teamId,
+      baseId: fields.baseId,
       trackerId: fields.trackerId,
     },
   });
@@ -41,7 +41,7 @@ function flagCreated(newId: number) {
       v-if="showFlagCreate"
       @created="flagCreated"
       :tracker="props.tracker"
-      :team="props.team"
+      :base="props.base"
     ></FlagCreate>
 
     <UiListControls>
@@ -68,7 +68,7 @@ function flagCreated(newId: number) {
           <th>lat</th>
           <th>long</th>
           <th>tracker</th>
-          <th>team</th>
+          <th>base</th>
           <th>distance</th>
           <th>actions</th>
         </tr>
@@ -93,7 +93,7 @@ function flagCreated(newId: number) {
             }}</NuxtLink>
           </td>
           <td>
-            <NuxtLink :to="`/teams/${flag.teamId}`">{{ flag.teamId }}</NuxtLink>
+            <NuxtLink :to="`/bases/${flag.baseId}`">{{ flag.baseId }}</NuxtLink>
           </td>
           <td>{{ flag.distance }}</td>
           <td><NuxtLink :to="`/flags/${flag.id}`">show</NuxtLink></td>

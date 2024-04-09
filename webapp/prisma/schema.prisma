@@ -5,11 +5,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = "postgresql://stsbow:stsbow@postgres:5432/stsbow?schema=public"
+  shadowDatabaseUrl = "postgresql://stsbow:stsbow@postgres:5432/stsbow_shadow?schema=public"
 }
 
-model Team {
+model Base {
   id           Int          @id @default(autoincrement())
   name         String       @unique
   flagZoneLat  Float?
@@ -34,8 +35,8 @@ model TrackerLog {
   long      Float
   tracker   Tracker  @relation(fields: [trackerId], references: [id])
   trackerId Int
-  team      Team?    @relation(fields: [teamId], references: [id])
-  teamId    Int?
+  base      Base?    @relation(fields: [baseId], references: [id])
+  baseId    Int?
   distance  Int
 }
 
@@ -48,8 +49,8 @@ model Flag {
   long          Float
   tracker       Tracker  @relation(fields: [trackerId], references: [id])
   trackerId     Int
-  team          Team?    @relation(fields: [teamId], references: [id])
-  teamId        Int?
+  base          Base?    @relation(fields: [baseId], references: [id])
+  baseId        Int?
   distance      Int
 }
 
@@ -59,6 +60,6 @@ model Action {
   action      String
   score       Float
   description String
-  team        Team     @relation(fields: [teamId], references: [id])
-  teamId      Int
+  base        Base     @relation(fields: [baseId], references: [id])
+  baseId      Int
 }

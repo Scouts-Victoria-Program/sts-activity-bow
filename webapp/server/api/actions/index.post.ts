@@ -25,7 +25,7 @@ export default defineEventHandler(
           action: body?.action,
           score: body?.score,
           description: body?.description,
-          teamId: body?.teamId,
+          baseId: body?.baseId,
         },
       });
       const actionData: ActionData = {
@@ -34,7 +34,7 @@ export default defineEventHandler(
         action: action.action as ActionData["action"],
         score: action.score,
         description: action.description,
-        teamId: action.teamId,
+        baseId: action.baseId,
       };
 
       sendMessage("action", {

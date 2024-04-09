@@ -18,7 +18,7 @@ const newFlag = ref<FlagUpdateInput>({
   lat: props.flag.lat,
   long: props.flag.long,
   trackerId: props.flag.trackerId,
-  teamId: props.flag.teamId,
+  baseId: props.flag.baseId,
   distance: props.flag.distance,
 });
 
@@ -31,7 +31,7 @@ async function submitUpdate() {
     lat: newFlag.value.lat,
     long: newFlag.value.long,
     trackerId: newFlag.value.trackerId,
-    teamId: newFlag.value.teamId,
+    baseId: newFlag.value.baseId,
     distance: newFlag.value.distance,
   };
 
@@ -79,8 +79,8 @@ async function submitUpdate() {
         <input id="form-log-create-tracker" v-model="newFlag.trackerId" />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
-        <input id="form-log-create-team" v-model="newFlag.teamId" />
+        <label for="form-log-create-base">Base</label>
+        <input id="form-log-create-base" v-model="newFlag.baseId" />
       </div>
       <div class="form-row">
         <label for="form-log-create-distance">Distance</label>

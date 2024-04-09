@@ -72,7 +72,7 @@ function logDeleted(id: number) {
     <div>Lat: {{ data.log.lat }}</div>
     <div>Long: {{ data.log.long }}</div>
     <div>Tracker: {{ data.log.trackerId }}</div>
-    <div>Team: {{ data.log.teamId ?? "none" }}</div>
+    <div>Base: {{ data.log.baseId ?? "none" }}</div>
     <div>Distance: {{ data.log.distance }}</div>
   </div>
   <div v-else>loading or error</div>

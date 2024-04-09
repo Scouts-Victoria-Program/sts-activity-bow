@@ -15,7 +15,7 @@ const newAction = ref<ActionUpdateInput>({
   datetime: props.action.datetime,
   action: props.action.action,
   score: props.action.score,
-  teamId: props.action.teamId,
+  baseId: props.action.baseId,
   description: props.action.description,
 });
 
@@ -25,7 +25,7 @@ async function submitUpdate() {
     datetime: newAction.value.datetime,
     action: newAction.value.action,
     score: newAction.value.score,
-    teamId: newAction.value.teamId,
+    baseId: newAction.value.baseId,
     description: newAction.value.description,
   };
 
@@ -70,11 +70,11 @@ async function submitUpdate() {
         />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
+        <label for="form-log-create-base">Base</label>
         <input
           type="number"
-          id="form-log-create-team"
-          v-model="newAction.teamId"
+          id="form-log-create-base"
+          v-model="newAction.baseId"
         />
       </div>
       <div v-if="error">{{ errorMessage }}</div>

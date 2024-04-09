@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 import { DateTime } from "luxon";
 import type { ActionOptionKeys } from "~/server/types/action";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
   action?: ActionOptionKeys;
 }>();
 
 const { fields, useUiFilterControls } = useListFilters<{
-  teamId: Ref<number | undefined>;
+  baseId: Ref<number | undefined>;
   action: Ref<ActionOptionKeys | undefined>;
 }>({
-  teamId: ref(props.team?.id),
+  baseId: ref(props.base?.id),
   action: ref(props.action),
 });
 const uiFilterControls = useUiFilterControls();
@@ -27,7 +27,7 @@ const {
   errorMessage,
 } = useListActions({
   where: {
-    teamId: fields.teamId,
+    baseId: fields.baseId,
     action: fields.action,
   },
 });
@@ -46,7 +46,7 @@ function actionCreated(newId: number) {
     <ActionCreate
       v-if="showActionCreate"
       @created="actionCreated"
-      :team="props.team"
+      :base="props.base"
     ></ActionCreate>
 
     <UiListControls>
@@ -71,7 +71,7 @@ function actionCreated(newId: number) {
           <th>action</th>
           <th>score</th>
           <th>description</th>
-          <th>team</th>
+          <th>base</th>
           <th>actions</th>
         </tr>
       </thead>
@@ -89,8 +89,8 @@ function actionCreated(newId: number) {
           <td>{{ action.score }}</td>
           <td>{{ action.description }}</td>
           <td>
-            <NuxtLink :to="`/teams/${action.teamId}`">{{
-              action.teamId
+            <NuxtLink :to="`/bases/${action.baseId}`">{{
+              action.baseId
             }}</NuxtLink>
           </td>
           <td><NuxtLink :to="`/actions/${action.id}`">show</NuxtLink></td>

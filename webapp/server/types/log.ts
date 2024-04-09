@@ -3,7 +3,7 @@ export interface LogCreateInput {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number;
+  baseId: number;
   distance: number;
 }
 
@@ -13,7 +13,7 @@ export interface LogUpdateInput {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }
 
@@ -23,6 +23,6 @@ export interface LogData {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }

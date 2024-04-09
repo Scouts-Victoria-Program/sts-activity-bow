@@ -3,7 +3,7 @@ import type {
   MessageDataFlag,
   MessageDataLog,
   MessageDataStatus,
-  MessageDataTeam,
+  MessageDataBase,
   MessageDataTracker,
 } from "~/server/types/webSocket";
 import { DateTime } from "luxon";
@@ -11,7 +11,7 @@ import { DateTime } from "luxon";
 let socket: ReturnType<typeof useSocket> | null = null;
 
 interface Entity {
-  type: "action" | "flag" | "log" | "team" | "tracker";
+  type: "action" | "flag" | "log" | "base" | "tracker";
   id: number;
 }
 export type WebSocketLog = {
@@ -59,7 +59,7 @@ export const useWebSockets = () => {
       socket.on("status", handleStatus);
       socket.on("action", handleAction);
       socket.on("flag", handleFlag);
-      socket.on("team", handleTeam);
+      socket.on("base", handleBase);
       socket.on("tracker", handleTracker);
       socket.on("log", handleLog);
     },
@@ -77,12 +77,12 @@ function handleStatus(data: MessageDataStatus) {
 }
 
 function buildRelated(entity: {
-  teamId?: number | null;
+  baseId?: number | null;
   trackerId?: number | null;
 }): Entity[] {
   const related: Entity[] = [];
-  if (entity.teamId) {
-    related.push({ type: "team", id: entity.teamId });
+  if (entity.baseId) {
+    related.push({ type: "base", id: entity.baseId });
   }
   if (entity.trackerId) {
     related.push({ type: "tracker", id: entity.trackerId });
@@ -154,30 +154,30 @@ function handleFlag(data: MessageDataFlag) {
   }
 }
 
-function handleTeam(data: MessageDataTeam) {
-  const { setTeam, removeTeam } = useTeam();
+function handleBase(data: MessageDataBase) {
+  const { setBase, removeBase } = useBase();
 
   switch (data.action) {
     case "create":
-      setTeam(data.team);
+      setBase(data.base);
       log({
-        entity: { type: "team", id: data.team.id },
+        entity: { type: "base", id: data.base.id },
         related: [],
         message: "created",
       });
       break;
     case "update":
-      setTeam(data.team);
+      setBase(data.base);
       log({
-        entity: { type: "team", id: data.team.id },
+        entity: { type: "base", id: data.base.id },
         related: [],
         message: "updated",
       });
       break;
     case "delete":
-      removeTeam(data.teamId);
+      removeBase(data.baseId);
       log({
-        entity: { type: "team", id: data.teamId },
+        entity: { type: "base", id: data.baseId },
         related: [],
         message: "deleted",
       });

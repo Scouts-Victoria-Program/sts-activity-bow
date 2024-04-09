@@ -14,7 +14,7 @@ export interface ActionCreateInput {
   action: ActionOptionKeys;
   score: number;
   description: string;
-  teamId: number;
+  baseId: number;
 }
 
 export interface ActionUpdateInput {
@@ -23,7 +23,7 @@ export interface ActionUpdateInput {
   action: ActionOptionKeys;
   score: number;
   description: string;
-  teamId: number;
+  baseId: number;
 }
 
 export interface ActionData {
@@ -32,5 +32,5 @@ export interface ActionData {
   action: ActionOptionKeys;
   score: number;
   description: string;
-  teamId: number;
+  baseId: number;
 }

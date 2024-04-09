@@ -29,7 +29,7 @@ export default defineEventHandler(
         lat: flag.lat,
         long: flag.long,
         trackerId: flag.trackerId,
-        teamId: flag.teamId,
+        baseId: flag.baseId,
         distance: flag.distance,
       };
       return { success: true, flag: flagData };

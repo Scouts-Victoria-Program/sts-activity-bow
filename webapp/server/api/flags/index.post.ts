@@ -27,7 +27,7 @@ export default defineEventHandler(
           lat: body?.lat,
           long: body?.long,
           trackerId: body?.trackerId,
-          teamId: body?.teamId,
+          baseId: body?.baseId,
           distance: body?.distance,
         },
       });
@@ -39,7 +39,7 @@ export default defineEventHandler(
         lat: flag.lat,
         long: flag.long,
         trackerId: flag.trackerId,
-        teamId: flag.teamId,
+        baseId: flag.baseId,
         distance: flag.distance,
       };
 

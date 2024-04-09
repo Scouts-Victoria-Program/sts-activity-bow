@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ActionOptions, type ActionCreateInput } from "~/server/types/action";
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
 }>();
 
 const { useCreateAction } = useAction();
@@ -16,7 +16,7 @@ const newAction = ref<ActionCreateInput>({
   datetime: new Date().toISOString(),
   action: "other",
   score: 0,
-  teamId: props.team?.id ?? 0,
+  baseId: props.base?.id ?? 0,
   description: "",
 });
 
@@ -25,7 +25,7 @@ async function submitCreate() {
     datetime: newAction.value.datetime,
     action: newAction.value.action,
     score: newAction.value.score,
-    teamId: newAction.value.teamId,
+    baseId: newAction.value.baseId,
     description: newAction.value.description,
   };
   const actionId = await create(reqBody);
@@ -64,11 +64,11 @@ async function submitCreate() {
         />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
+        <label for="form-log-create-base">Base</label>
         <input
           type="number"
-          id="form-log-create-team"
-          v-model="newAction.teamId"
+          id="form-log-create-base"
+          v-model="newAction.baseId"
         />
       </div>
 

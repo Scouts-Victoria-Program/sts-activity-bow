@@ -22,9 +22,9 @@ definePageMeta({
       <li><NuxtLink :to="`/map`">Map</NuxtLink></li>
     </ul>
 
-    <h3>View the teams playing:</h3>
+    <h3>View the bases playing:</h3>
     <ul>
-      <li><NuxtLink :to="`/teams`">Team list</NuxtLink></li>
+      <li><NuxtLink :to="`/bases`">Base list</NuxtLink></li>
     </ul>
 
     <h3>Locate Flags:</h3>

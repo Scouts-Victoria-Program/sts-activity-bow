@@ -5,7 +5,7 @@ export interface FlagCreateInput {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }
 
@@ -17,7 +17,7 @@ export interface FlagUpdateInput {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }
 
@@ -29,6 +29,6 @@ export interface FlagData {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }

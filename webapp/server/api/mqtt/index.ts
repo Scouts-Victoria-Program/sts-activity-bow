@@ -15,7 +15,7 @@ interface ParsedUplinkMessage {
   long: number;
 }
 
-interface ClosestTeam {
+interface ClosestBase {
   id: number;
   distance: number;
 }
@@ -27,7 +27,7 @@ interface FlagToInsert {
   lat: number;
   long: number;
   trackerId: number;
-  teamId: number | null;
+  baseId: number | null;
   distance: number;
 }
 
@@ -79,23 +79,23 @@ async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
     },
   });
 
-  // Calculate current tracker zone/team base.
-  const closestTeam = await getClosestTeamFlagZoneByLatLong(
+  // Calculate current tracker zone/base base.
+  const closestBase = await getClosestBaseFlagZoneByLatLong(
     uplinkMessage.lat,
     uplinkMessage.long
   );
 
   console.log(
-    `GPS trace logged: tracker ${trackerData.name} team ${closestTeam.id} distance ${closestTeam.distance}`
+    `GPS trace logged: tracker ${trackerData.name} base ${closestBase.id} distance ${closestBase.distance}`
   );
 
   // Log data point.
-  await insertLog({ uplinkMessage, trackerData, closestTeam });
+  await insertLog({ uplinkMessage, trackerData, closestBase });
 
   const flagWindows = await generateFlagWindows({
     uplinkMessage,
     trackerData,
-    closestTeam,
+    closestBase,
   });
   await insertFlags(flagWindows);
 }
@@ -103,16 +103,16 @@ async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
 async function insertLog(context: {
   uplinkMessage: ParsedUplinkMessage;
   trackerData: { id: number };
-  closestTeam: ClosestTeam;
+  closestBase: ClosestBase;
 }) {
   const log = await prisma.trackerLog.create({
     data: {
       datetime: new Date(Date.now()),
       lat: context.uplinkMessage.lat,
       long: context.uplinkMessage.long,
-      teamId: context.closestTeam.id,
+      baseId: context.closestBase.id,
       trackerId: context.trackerData.id,
-      distance: context.closestTeam.distance,
+      distance: context.closestBase.distance,
     },
   });
 
@@ -123,7 +123,7 @@ async function insertLog(context: {
     lat: log.lat,
     long: log.long,
     trackerId: log.trackerId,
-    teamId: log.teamId,
+    baseId: log.baseId,
     distance: log.distance,
   };
   sendMessage("log", {
@@ -136,7 +136,7 @@ async function insertLog(context: {
 async function generateFlagWindows(context: {
   uplinkMessage: ParsedUplinkMessage;
   trackerData: { id: number; scoreModifier: number };
-  closestTeam: ClosestTeam;
+  closestBase: ClosestBase;
 }): Promise<FlagToInsert[]> {
   const config = useRuntimeConfig();
   const interval = config.public.flagWindowIntervalMinutes;
@@ -196,7 +196,7 @@ function buildFlag(
     | {
         uplinkMessage: ParsedUplinkMessage;
         trackerData: { id: number; scoreModifier: number };
-        closestTeam: ClosestTeam;
+        closestBase: ClosestBase;
       }
     | { previousFlag: FlagToInsert }
 ): FlagToInsert {
@@ -208,7 +208,7 @@ function buildFlag(
       lat: context.previousFlag.lat,
       long: context.previousFlag.long,
       trackerId: context.previousFlag.trackerId,
-      teamId: context.previousFlag.teamId,
+      baseId: context.previousFlag.baseId,
       distance: context.previousFlag.distance,
     };
   }
@@ -220,8 +220,8 @@ function buildFlag(
     lat: context.uplinkMessage.lat,
     long: context.uplinkMessage.long,
     trackerId: context.trackerData.id,
-    teamId: context.closestTeam.id,
-    distance: context.closestTeam.distance,
+    baseId: context.closestBase.id,
+    distance: context.closestBase.distance,
   };
 }
 
@@ -250,7 +250,7 @@ async function insertFlags(flagsToInsert: FlagToInsert[]) {
       lat: flag.lat,
       long: flag.long,
       trackerId: flag.trackerId,
-      teamId: flag.teamId,
+      baseId: flag.baseId,
       distance: flag.distance,
     };
     sendMessage("flag", {
@@ -286,10 +286,10 @@ function parseUpLinkMessage(
   };
 }
 
-async function getClosestTeamFlagZoneByLatLong(
+async function getClosestBaseFlagZoneByLatLong(
   lat: number,
   long: number
-): Promise<ClosestTeam> {
+): Promise<ClosestBase> {
   try {
     await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS cube;`;
     await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS earthdistance;`;
@@ -299,10 +299,10 @@ async function getClosestTeamFlagZoneByLatLong(
         ll_to_earth(t."flagZoneLat", t."flagZoneLong"),
         ll_to_earth(${lat}, ${long})
       ) as distance
-     FROM "Team" as t
+     FROM "Base" as t
      ORDER BY distance ASC
      LIMIT 1
-     `) as ClosestTeam[];
+     `) as ClosestBase[];
 
     return { id: res4[0].id, distance: res4[0].distance };
   } catch (e) {

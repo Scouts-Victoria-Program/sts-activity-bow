@@ -23,7 +23,7 @@ export interface StatSet {
 
 export interface StatData {
   statTypes: typeof StatSetType;
-  teams: {
+  bases: {
     id: number;
     stats: Record<StatSetTypeKey, StatSet>;
     score: number;

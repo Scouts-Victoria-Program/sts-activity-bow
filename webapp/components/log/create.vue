@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { LogCreateInput } from "~/server/types/log";
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 import type { TrackerData } from "~/server/types/tracker";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
   tracker?: TrackerData;
 }>();
 
@@ -19,7 +19,7 @@ const newLog = ref<LogCreateInput>({
   lat: 0,
   long: 0,
   trackerId: props.tracker?.id ?? 0,
-  teamId: props.team?.id ?? 0,
+  baseId: props.base?.id ?? 0,
   distance: 0,
 });
 
@@ -29,7 +29,7 @@ async function submitCreate() {
     lat: newLog.value.lat,
     long: newLog.value.long,
     trackerId: newLog.value.trackerId,
-    teamId: newLog.value.teamId,
+    baseId: newLog.value.baseId,
     distance: newLog.value.distance,
   };
   const logId = await create(reqBody);
@@ -61,8 +61,8 @@ async function submitCreate() {
         <input id="form-log-create-tracker" v-model="newLog.trackerId" />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
-        <input id="form-log-create-team" v-model="newLog.teamId" />
+        <label for="form-log-create-base">Base</label>
+        <input id="form-log-create-base" v-model="newLog.baseId" />
       </div>
       <div class="form-row">
         <label for="form-log-create-distance">Distance</label>

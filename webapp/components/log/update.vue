@@ -16,7 +16,7 @@ const newLog = ref<LogUpdateInput>({
   lat: props.log.lat,
   long: props.log.long,
   trackerId: props.log.trackerId,
-  teamId: props.log.teamId ?? null,
+  baseId: props.log.baseId ?? null,
   distance: props.log.distance,
 });
 
@@ -27,7 +27,7 @@ async function submitUpdate() {
     lat: newLog.value.lat,
     long: newLog.value.long,
     trackerId: newLog.value.trackerId,
-    teamId: newLog.value.teamId,
+    baseId: newLog.value.baseId,
     distance: newLog.value.distance,
   };
   const logId = await update(reqBody);
@@ -62,8 +62,8 @@ async function submitUpdate() {
         <input id="form-log-create-tracker" v-model="newLog.trackerId" />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
-        <input id="form-log-create-team" v-model="newLog.teamId" />
+        <label for="form-log-create-base">Base</label>
+        <input id="form-log-create-base" v-model="newLog.baseId" />
       </div>
       <div class="form-row">
         <label for="form-log-create-distance">Distance</label>

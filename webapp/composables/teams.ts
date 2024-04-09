@@ -1,53 +1,53 @@
 import type {
-  TeamData,
-  TeamCreateInput,
-  TeamUpdateInput,
-} from "~/server/types/team";
+  BaseData,
+  BaseCreateInput,
+  BaseUpdateInput,
+} from "~/server/types/base";
 import { usePageControls } from "./pageControls";
 
-interface FetchTeamComposable {
-  team: ComputedRef<TeamData | null>;
+interface FetchBaseComposable {
+  base: ComputedRef<BaseData | null>;
   loading: Ref<boolean>;
 }
 
 // This is not good practice and you should never store state outside
 // the composable constructor function. I havent been able to work out
 // how to better define per entity composable fns.
-const fetchTeamComposable: Record<string, FetchTeamComposable> = {};
+const fetchBaseComposable: Record<string, FetchBaseComposable> = {};
 
-export const useTeam = () => {
-  const teamsState = useState<Record<string, TeamData>>("teams", () => ({}));
+export const useBase = () => {
+  const basesState = useState<Record<string, BaseData>>("bases", () => ({}));
 
   return {
-    teams: teamsState,
-    getTeam(id: number): ComputedRef<TeamData | null> {
-      return computed(() => teamsState.value[String(id)] ?? null);
+    bases: basesState,
+    getBase(id: number): ComputedRef<BaseData | null> {
+      return computed(() => basesState.value[String(id)] ?? null);
     },
-    setTeam(team: TeamData): void {
-      teamsState.value[String(team.id)] = team;
+    setBase(base: BaseData): void {
+      basesState.value[String(base.id)] = base;
     },
-    setTeams(teams: TeamData[]): void {
-      teams.forEach((team) => (teamsState.value[String(team.id)] = team));
+    setBases(bases: BaseData[]): void {
+      bases.forEach((base) => (basesState.value[String(base.id)] = base));
     },
-    removeTeam(teamId: number): void {
-      delete teamsState.value[String(teamId)];
+    removeBase(baseId: number): void {
+      delete basesState.value[String(baseId)];
     },
-    useFetchTeam: (teamId: number | null): FetchTeamComposable => {
-      if (teamId === null) {
+    useFetchBase: (baseId: number | null): FetchBaseComposable => {
+      if (baseId === null) {
         return {
-          team: computed(() => null),
+          base: computed(() => null),
           loading: ref(false),
         };
       }
 
-      if (fetchTeamComposable[teamId]) {
-        return fetchTeamComposable[teamId];
+      if (fetchBaseComposable[baseId]) {
+        return fetchBaseComposable[baseId];
       }
 
-      const { data, pending } = useFetch(`/api/teams/${teamId}`, {});
+      const { data, pending } = useFetch(`/api/bases/${baseId}`, {});
 
-      fetchTeamComposable[teamId] = {
-        team: useTeam().getTeam(teamId),
+      fetchBaseComposable[baseId] = {
+        base: useBase().getBase(baseId),
         loading: pending,
       };
 
@@ -55,15 +55,15 @@ export const useTeam = () => {
         if (!value?.success) {
           return;
         }
-        useTeam().setTeam(value.team);
+        useBase().setBase(value.base);
       });
 
-      return fetchTeamComposable[teamId];
+      return fetchBaseComposable[baseId];
     },
-    useListTeams: () => {
+    useListBases: () => {
       const { currentPage, useUiPageControls } = usePageControls();
 
-      const { data, refresh, pending } = useFetch(`/api/teams`, {
+      const { data, refresh, pending } = useFetch(`/api/bases`, {
         params: { page: currentPage },
       });
 
@@ -77,18 +77,18 @@ export const useTeam = () => {
         if (!value?.success) {
           return;
         }
-        useTeam().setTeams(value.teams);
+        useBase().setBases(value.bases);
       });
 
       return {
-        displayTeams: computed(() => {
+        displayBases: computed(() => {
           if (!data.value?.success) {
             return [];
           }
 
-          return data.value?.teams
-            .map(({ id: teamId }) => useTeam().getTeam(teamId).value)
-            .filter((team): team is TeamData => team !== null);
+          return data.value?.bases
+            .map(({ id: baseId }) => useBase().getBase(baseId).value)
+            .filter((base): base is BaseData => base !== null);
         }),
         uiPageControls,
         refresh,
@@ -100,16 +100,16 @@ export const useTeam = () => {
           if (data.value?.success === false) {
             return data.value.message;
           }
-          return "Unable to fetch team list";
+          return "Unable to fetch base list";
         }),
       };
     },
-    useListAllTeams: () => {
+    useListAllBases: () => {
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
-      async function fetchTeamPage(page: number = 1): Promise<number[]> {
-        const { data } = await useFetch(`/api/teams`, {
+      async function fetchBasePage(page: number = 1): Promise<number[]> {
+        const { data } = await useFetch(`/api/bases`, {
           params: { page: page },
         });
 
@@ -119,31 +119,31 @@ export const useTeam = () => {
           return [];
         }
 
-        useTeam().setTeams(data.value.teams);
+        useBase().setBases(data.value.bases);
 
-        const teamIds = data.value.teams.map((team) => team.id);
+        const baseIds = data.value.bases.map((base) => base.id);
 
         if (data.value.maxPages <= page) {
-          return teamIds; // Team Ids from last page.
+          return baseIds; // Base Ids from last page.
         }
 
         return [
-          ...teamIds, // Team Ids from current page.
-          ...(await fetchTeamPage(page + 1)), // Team Ids from future pages.
+          ...baseIds, // Base Ids from current page.
+          ...(await fetchBasePage(page + 1)), // Base Ids from future pages.
         ];
       }
 
       const pending = ref<boolean>(true);
 
-      fetchTeamPage()
-        .then((teamIdsFetched) => {
-          const { teams, removeTeam } = useTeam();
+      fetchBasePage()
+        .then((baseIdsFetched) => {
+          const { bases, removeBase } = useBase();
 
-          const teamsIdsNotFetched = Object.values(teams)
-            .filter((team) => !teamIdsFetched.includes(team.id))
-            .map((team) => team.id);
+          const basesIdsNotFetched = Object.values(bases)
+            .filter((base) => !baseIdsFetched.includes(base.id))
+            .map((base) => base.id);
 
-          teamsIdsNotFetched.forEach((teamId) => removeTeam(teamId));
+          basesIdsNotFetched.forEach((baseId) => removeBase(baseId));
         })
         .catch(() => {
           error.value = true;
@@ -159,20 +159,20 @@ export const useTeam = () => {
         errorMessage,
       };
     },
-    useCreateTeam: () => {
+    useCreateBase: () => {
       const created = ref<boolean>(false);
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async create(newTeam: TeamCreateInput): Promise<number | null> {
+        async create(newBase: BaseCreateInput): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/teams`, {
+          const data = await $fetch(`/api/bases`, {
             method: "post",
-            body: newTeam,
+            body: newBase,
           });
 
           if (data.success === false) {
@@ -182,13 +182,13 @@ export const useTeam = () => {
             return null;
           }
 
-          useTeam().setTeam(data.team);
+          useBase().setBase(data.base);
 
           // Set `created` ref so create button can be disabled
           // forever once we've had a successful creation.
           created.value = true;
 
-          return data.team.id;
+          return data.base.id;
         },
         created,
         loading,
@@ -196,19 +196,19 @@ export const useTeam = () => {
         errorMessage,
       };
     },
-    useUpdateTeam: () => {
+    useUpdateBase: () => {
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async update(updatedTeam: TeamUpdateInput): Promise<number | null> {
+        async update(updatedBase: BaseUpdateInput): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/teams/${updatedTeam.id}`, {
+          const data = await $fetch(`/api/bases/${updatedBase.id}`, {
             method: "put",
-            body: updatedTeam,
+            body: updatedBase,
           });
 
           if (data.success === false) {
@@ -218,27 +218,27 @@ export const useTeam = () => {
             return null;
           }
 
-          useTeam().setTeam(data.team);
+          useBase().setBase(data.base);
 
-          return data.team.id;
+          return data.base.id;
         },
         loading,
         error,
         errorMessage,
       };
     },
-    useDeleteTeam: () => {
+    useDeleteBase: () => {
       const deleted = ref<boolean>(false);
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async deleteFn(deleteTeamId: number): Promise<number | null> {
+        async deleteFn(deleteBaseId: number): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/teams/${deleteTeamId}`, {
+          const data = await $fetch(`/api/bases/${deleteBaseId}`, {
             method: "delete",
           });
 
@@ -249,13 +249,13 @@ export const useTeam = () => {
             return null;
           }
 
-          useTeam().removeTeam(data.team.id);
+          useBase().removeBase(data.base.id);
 
           // Set `deleted` ref so delete button can be disabled
           // forever once we've had a successful creation.
           deleted.value = true;
 
-          return data.team.id;
+          return data.base.id;
         },
         deleted,
         loading,

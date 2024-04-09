@@ -2,19 +2,19 @@
 import { useBreadcrumbs } from "~/types/breadcrumbs";
 
 useHead({
-  title: "Teams",
+  title: "Bases",
 });
 
 definePageMeta({
   breadcrumbs: useBreadcrumbs([
     { to: `/`, label: `Home` },
-    { to: `/teams`, label: `Teams` },
+    { to: `/bases`, label: `Bases` },
   ]),
 });
 </script>
 
 <template>
   <div>
-    <TeamList> </TeamList>
+    <BaseList> </BaseList>
   </div>
 </template>

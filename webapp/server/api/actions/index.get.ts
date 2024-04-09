@@ -17,7 +17,7 @@ interface ResponseFailure {
 
 interface QueryParams {
   page: string;
-  teamId?: string;
+  baseId?: string;
   action?: ActionOptionKeys;
 }
 
@@ -37,14 +37,14 @@ export default defineEventHandler(
           datetime: "desc",
         },
         where: {
-          teamId: params.teamId ? Number(params.teamId) : undefined,
+          baseId: params.baseId ? Number(params.baseId) : undefined,
           action: params.action ? params.action : undefined,
         },
       });
 
       const actionsCount = await prisma.action.count({
         where: {
-          teamId: params.teamId ? Number(params.teamId) : undefined,
+          baseId: params.baseId ? Number(params.baseId) : undefined,
           action: params.action ? params.action : undefined,
         },
       });
@@ -62,7 +62,7 @@ export default defineEventHandler(
             action: action.action as ActionData["action"],
             score: action.score,
             description: action.description,
-            teamId: action.teamId,
+            baseId: action.baseId,
           };
           return actionData;
         }),

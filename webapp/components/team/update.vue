@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import type { TeamData, TeamUpdateInput } from "~/server/types/team";
-const { useUpdateTeam } = useTeam();
-const { update, loading, error, errorMessage } = useUpdateTeam();
+import type { BaseData, BaseUpdateInput } from "~/server/types/base";
+const { useUpdateBase } = useBase();
+const { update, loading, error, errorMessage } = useUpdateBase();
 
 const emit = defineEmits<{
   updated: [id: number];
 }>();
 const props = defineProps<{
-  team: TeamData;
+  base: BaseData;
 }>();
 
-const newTeam = ref<TeamUpdateInput>({
-  id: props.team.id,
-  name: props.team.name,
-  flagZoneLat: props.team.flagZoneLat,
-  flagZoneLong: props.team.flagZoneLong,
+const newBase = ref<BaseUpdateInput>({
+  id: props.base.id,
+  name: props.base.name,
+  flagZoneLat: props.base.flagZoneLat,
+  flagZoneLong: props.base.flagZoneLong,
 });
 
 async function submitUpdate() {
-  const reqBody: TeamUpdateInput = {
-    id: newTeam.value.id,
-    name: newTeam.value.name,
-    flagZoneLat: newTeam.value.flagZoneLat,
-    flagZoneLong: newTeam.value.flagZoneLong,
+  const reqBody: BaseUpdateInput = {
+    id: newBase.value.id,
+    name: newBase.value.name,
+    flagZoneLat: newBase.value.flagZoneLat,
+    flagZoneLong: newBase.value.flagZoneLong,
   };
 
-  const teamId = await update(reqBody);
+  const baseId = await update(reqBody);
 
-  if (teamId) {
-    emit("updated", teamId);
+  if (baseId) {
+    emit("updated", baseId);
   }
 }
 </script>
@@ -36,34 +36,34 @@ async function submitUpdate() {
 <template>
   <form>
     <fieldset>
-      <legend>Update Team</legend>
+      <legend>Update Base</legend>
       <div>
-        <p>ID: {{ newTeam.id }}</p>
+        <p>ID: {{ newBase.id }}</p>
       </div>
       <div class="form-row">
-        <label for="form-team-update-name">Team name</label>
-        <input id="form-team-update-name" v-model="newTeam.name" />
+        <label for="form-base-update-name">Base name</label>
+        <input id="form-base-update-name" v-model="newBase.name" />
       </div>
       <div class="form-row">
-        <label for="form-team-update-lat">Lat</label>
+        <label for="form-base-update-lat">Lat</label>
         <input
           type="number"
-          id="form-team-update-lat"
-          v-model="newTeam.flagZoneLat"
+          id="form-base-update-lat"
+          v-model="newBase.flagZoneLat"
         />
       </div>
       <div class="form-row">
-        <label for="form-team-update-long">Long</label>
+        <label for="form-base-update-long">Long</label>
         <input
           type="number"
-          id="form-team-update-long"
-          v-model="newTeam.flagZoneLong"
+          id="form-base-update-long"
+          v-model="newBase.flagZoneLong"
         />
       </div>
       <div v-if="error">{{ errorMessage }}</div>
       <div class="form-actions">
         <button type="button" @click="submitUpdate" :disabled="loading">
-          Update Team
+          Update Base
         </button>
       </div>
     </fieldset>

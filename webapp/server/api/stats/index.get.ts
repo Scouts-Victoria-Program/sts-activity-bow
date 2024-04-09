@@ -6,7 +6,7 @@ import {
   StatSetType,
   StatSetTypeKey,
 } from "~/server/types/stat";
-import { TeamData } from "~/server/types/team";
+import { BaseData } from "~/server/types/base";
 import { DateTime } from "luxon";
 
 interface ResponseSuccess {
@@ -41,7 +41,7 @@ class StatBuilder {
   prisma: PrismaClient;
 
   stats: StatData | null = null;
-  teams: TeamData[] = [];
+  bases: BaseData[] = [];
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
@@ -50,53 +50,53 @@ class StatBuilder {
   static async Builder(prisma: PrismaClient) {
     const statBuilder = new StatBuilder(prisma);
 
-    await statBuilder.loadTeams();
+    await statBuilder.loadBases();
 
     await statBuilder.generateStats();
 
     return statBuilder;
   }
 
-  async loadTeams(): Promise<void> {
-    const teams = await this.prisma.team.findMany({
+  async loadBases(): Promise<void> {
+    const bases = await this.prisma.base.findMany({
       orderBy: {
         id: "asc",
       },
     });
 
-    this.teams = teams.map((team) => {
-      const teamData: TeamData = {
-        id: team.id,
-        name: team.name,
-        flagZoneLat: team.flagZoneLat,
-        flagZoneLong: team.flagZoneLong,
+    this.bases = bases.map((base) => {
+      const baseData: BaseData = {
+        id: base.id,
+        name: base.name,
+        flagZoneLat: base.flagZoneLat,
+        flagZoneLong: base.flagZoneLong,
       };
-      return teamData;
+      return baseData;
     });
   }
 
   async generateStats() {
-    const teamStats: StatData["teams"] = [];
+    const baseStats: StatData["bases"] = [];
 
-    for (const team of this.teams) {
-      const teamStatManager = new TeamStatManager(team, this.prisma);
-      await teamStatManager.generateStats();
-      teamStats.push({
-        id: team.id,
-        stats: teamStatManager.stats,
-        score: teamStatManager.totalScore,
+    for (const base of this.bases) {
+      const baseStatManager = new BaseStatManager(base, this.prisma);
+      await baseStatManager.generateStats();
+      baseStats.push({
+        id: base.id,
+        stats: baseStatManager.stats,
+        score: baseStatManager.totalScore,
       });
     }
 
     this.stats = {
       statTypes: StatSetType,
-      teams: teamStats,
+      bases: baseStats,
     };
   }
 }
 
-class TeamStatManager {
-  team: TeamData;
+class BaseStatManager {
+  base: BaseData;
   prisma: PrismaClient;
 
   stats: Record<StatSetTypeKey, StatSet> = {} as Record<
@@ -106,8 +106,8 @@ class TeamStatManager {
 
   totalScore: number = 0;
 
-  constructor(team: TeamData, prisma: PrismaClient) {
-    this.team = team;
+  constructor(base: BaseData, prisma: PrismaClient) {
+    this.base = base;
     this.prisma = prisma;
   }
 
@@ -137,7 +137,7 @@ class TeamStatManager {
     //   flagPossesion: number;
     //   lifeTokenPossesion: number;
     // };
-    // teamWith: {
+    // baseWith: {
     //   mostConcurrentFlags: number;
     //   mostLifeTokensCaptured: number;
     //   mostLifeTokenslost: number;
@@ -151,7 +151,7 @@ class TeamStatManager {
 
     const flagTraces = await this.prisma.flag.findMany({
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         distance: {
           lte: config.public.flagCapturedDistance,
         },
@@ -179,7 +179,7 @@ class TeamStatManager {
       description: durationString(flagMinutes),
       raw: flagMinutes,
       score: flagMinutesScore,
-      link: `/flags?teamId=${this.team.id}`,
+      link: `/flags?baseId=${this.base.id}`,
     });
 
     // Calculate durations with and without flags.
@@ -188,13 +188,13 @@ class TeamStatManager {
         description: "Never had a flag",
         raw: 0,
         score: 0,
-        link: `/flags?teamId=${this.team.id}`,
+        link: `/flags?baseId=${this.base.id}`,
       });
       this.addStat("longestTimeWithoutFlag", {
         description: "Never had a flag",
         raw: 0,
         score: 0,
-        link: `/flags?teamId=${this.team.id}`,
+        link: `/flags?baseId=${this.base.id}`,
       });
       return;
     }
@@ -217,7 +217,7 @@ class TeamStatManager {
 
       if (trace.windowSize < minutesSincePrevFlag) {
         // More than the interval window is transpired.
-        // The team did not have a flag between the previous time and this flag.
+        // The base did not have a flag between the previous time and this flag.
         longestTimeWithoutFlag = Math.max(
           longestTimeWithoutFlag,
           minutesSincePrevFlag
@@ -226,7 +226,7 @@ class TeamStatManager {
         prevFlagTime = traceDateTime;
       } else {
         // Still within the interval window since previous flag.
-        // The team did have a flag between the previous time and this flag.
+        // The base did have a flag between the previous time and this flag.
 
         const minutesSinceCaptureStart = flagCaptureStart.diff(
           traceDateTime,
@@ -245,13 +245,13 @@ class TeamStatManager {
       description: durationString(longestTimeWithFlag),
       raw: longestTimeWithFlag,
       score: 0,
-      link: `/flags?teamId=${this.team.id}`,
+      link: `/flags?baseId=${this.base.id}`,
     });
     this.addStat("longestTimeWithoutFlag", {
       description: durationString(longestTimeWithoutFlag),
       raw: longestTimeWithoutFlag,
       score: 0,
-      link: `/flags?teamId=${this.team.id}`,
+      link: `/flags?baseId=${this.base.id}`,
     });
   }
 
@@ -263,7 +263,7 @@ class TeamStatManager {
       // _sum: { score: true },
       _count: { action: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "violationFlag",
       },
     });
@@ -274,7 +274,7 @@ class TeamStatManager {
       score:
         flagVisibilityViolations._count.action *
         config.public.scoreModifiers.flagVisibilityViolation,
-      link: `/actions?teamId=${this.team.id}&action=violationFlag`,
+      link: `/actions?baseId=${this.base.id}&action=violationFlag`,
     });
   }
 
@@ -286,7 +286,7 @@ class TeamStatManager {
       by: "datetime",
       _count: { datetime: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         distance: {
           lte: config.public.flagCapturedDistance,
         },
@@ -304,7 +304,7 @@ class TeamStatManager {
         description: `No Flags Captured`,
         raw: 0,
         score: 0,
-        link: `/flags?teamId=${this.team.id}`,
+        link: `/flags?baseId=${this.base.id}`,
       });
       return;
     }
@@ -312,8 +312,8 @@ class TeamStatManager {
     this.addStat("maxConcurrentFlags", {
       description: `Occurred at ${concurrentFlagTraces[0].datetime}`,
       raw: concurrentFlagTraces[0]._count.datetime,
-      score: 0, // Only awards points if the team with the most.
-      link: `/flags?teamId=${this.team.id}`,
+      score: 0, // Only awards points if the base with the most.
+      link: `/flags?baseId=${this.base.id}`,
     });
   }
 
@@ -325,7 +325,7 @@ class TeamStatManager {
       _count: { action: true },
       _sum: { score: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "kill",
       },
     });
@@ -336,7 +336,7 @@ class TeamStatManager {
       score:
         (capturedLifeTokens._sum.score ?? 0) *
         config.public.scoreModifiers.capturedLifeToken,
-      link: `/actions?teamId=${this.team.id}&action=kill`,
+      link: `/actions?baseId=${this.base.id}&action=kill`,
     });
   }
 
@@ -347,7 +347,7 @@ class TeamStatManager {
     const capturedLifeTokens = await this.prisma.action.aggregate({
       _count: { action: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "violationMissingLifeToken",
       },
     });
@@ -358,7 +358,7 @@ class TeamStatManager {
       score:
         capturedLifeTokens._count.action *
         config.public.scoreModifiers.missingLifeToken,
-      link: `/actions?teamId=${this.team.id}&action=violationMissingLifeToken`,
+      link: `/actions?baseId=${this.base.id}&action=violationMissingLifeToken`,
     });
   }
 
@@ -370,7 +370,7 @@ class TeamStatManager {
       _count: { action: true },
       _sum: { score: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "respawn",
       },
     });
@@ -379,7 +379,7 @@ class TeamStatManager {
       description: "times respawned",
       raw: respawns._count.action,
       score: (respawns._sum.score ?? 0) * config.public.scoreModifiers.respawn,
-      link: `/actions?teamId=${this.team.id}&action=respawn`,
+      link: `/actions?baseId=${this.base.id}&action=respawn`,
     });
   }
 
@@ -390,7 +390,7 @@ class TeamStatManager {
       _count: { action: true },
       _sum: { score: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "chance",
         score: {
           gte: 0,
@@ -401,7 +401,7 @@ class TeamStatManager {
       _count: { action: true },
       _sum: { score: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "chance",
         score: {
           lt: 0,
@@ -415,7 +415,7 @@ class TeamStatManager {
       score:
         (gameOfChanceWins._sum.score ?? 0) *
         config.public.scoreModifiers.gameOfChanceWin,
-      link: `/actions?teamId=${this.team.id}&action=chance`,
+      link: `/actions?baseId=${this.base.id}&action=chance`,
     });
 
     this.addStat("gameOfChanceLoses", {
@@ -426,7 +426,7 @@ class TeamStatManager {
         (gameOfChanceLoses._sum.score ?? 0) *
         -1 *
         config.public.scoreModifiers.gameOfChanceLose,
-      link: `/actions?teamId=${this.team.id}&action=chance`,
+      link: `/actions?baseId=${this.base.id}&action=chance`,
     });
   }
 
@@ -438,7 +438,7 @@ class TeamStatManager {
       _count: { action: true },
       _sum: { score: true },
       where: {
-        teamId: this.team.id,
+        baseId: this.base.id,
         action: "other",
       },
     });
@@ -449,7 +449,7 @@ class TeamStatManager {
       score:
         (otherActions._sum.score ?? 0) *
         config.public.scoreModifiers.otherActions,
-      link: `/actions?teamId=${this.team.id}&action=other`,
+      link: `/actions?baseId=${this.base.id}&action=other`,
     });
   }
 }

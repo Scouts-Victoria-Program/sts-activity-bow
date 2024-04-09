@@ -1,4 +1,4 @@
-import { Prisma, Team } from "@prisma/client";
+import { Prisma, Base } from "@prisma/client";
 import prisma from "~/server/prisma";
 
 import { useSocketServer } from "~/server/utils/websocket";
@@ -6,7 +6,7 @@ const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  team: { id: number };
+  base: { id: number };
 }
 interface ResponseFailure {
   success: false;
@@ -20,19 +20,19 @@ export default defineEventHandler(
     }
 
     try {
-      const teamId = Number(event.context.params.id);
+      const baseId = Number(event.context.params.id);
 
-      await prisma.team.delete({
-        where: { id: teamId },
+      await prisma.base.delete({
+        where: { id: baseId },
       });
 
-      sendMessage("team", {
-        type: "team",
+      sendMessage("base", {
+        type: "base",
         action: "delete",
-        teamId: teamId,
+        baseId: baseId,
       });
 
-      return { success: true, team: { id: teamId } };
+      return { success: true, base: { id: baseId } };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

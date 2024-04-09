@@ -41,7 +41,7 @@ function actionDeleted(id: number) {
 
 <template>
   <div v-if="data && data.success && !pending">
-    <h2>Action: {{ data.action.teamId }}</h2>
+    <h2>Action: {{ data.action.baseId }}</h2>
     <button type="button" @click="showActionUpdate = !showActionUpdate">
       {{ showActionUpdate ? "Hide" : "Show" }} Update Action
     </button>
@@ -72,7 +72,7 @@ function actionDeleted(id: number) {
     <div>Action: {{ data.action.action }}</div>
     <div>Score {{ data.action.score }}</div>
     <div>Description {{ data.action.description }}</div>
-    <div>TeamId: {{ data.action.teamId }}</div>
+    <div>BaseId: {{ data.action.baseId }}</div>
   </div>
   <div v-else>loading or error</div>
 </template>

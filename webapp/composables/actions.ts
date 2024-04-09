@@ -68,7 +68,7 @@ export const useAction = () => {
     },
     useListActions: (options: {
       where: {
-        teamId?: Ref<number | undefined>;
+        baseId?: Ref<number | undefined>;
         action?: Ref<ActionOptionKeys | undefined>;
       };
     }) => {
@@ -77,7 +77,7 @@ export const useAction = () => {
       const { data, refresh, pending } = useFetch(`/api/actions`, {
         params: {
           page: currentPage,
-          teamId: options.where.teamId,
+          baseId: options.where.baseId,
           action: options.where.action,
         },
       });

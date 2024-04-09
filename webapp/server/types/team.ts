@@ -1,17 +1,17 @@
-export interface TeamCreateInput {
+export interface BaseCreateInput {
   name: string;
   flagZoneLat?: number | null;
   flagZoneLong?: number | null;
 }
 
-export interface TeamUpdateInput {
+export interface BaseUpdateInput {
   id: number;
   name: string;
   flagZoneLat?: number | null;
   flagZoneLong?: number | null;
 }
 
-export interface TeamData {
+export interface BaseData {
   id: number;
   name: string;
   flagZoneLat?: number | null;

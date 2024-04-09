@@ -1,13 +1,13 @@
-import { Prisma, Team } from "@prisma/client";
+import { Prisma, Base } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { TeamUpdateInput, TeamData } from "~/server/types/team";
+import { BaseUpdateInput, BaseData } from "~/server/types/base";
 
 import { useSocketServer } from "~/server/utils/websocket";
 const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  team: TeamData;
+  base: BaseData;
 }
 interface ResponseFailure {
   success: false;
@@ -20,18 +20,18 @@ export default defineEventHandler(
       return { success: false, message: "missing id in url" };
     }
 
-    const body = await readBody<TeamUpdateInput>(event);
+    const body = await readBody<BaseUpdateInput>(event);
 
     if (body.id !== Number(event.context.params?.id)) {
       return { success: false, message: `ID in body does not match url path` };
     }
 
     if (!body?.name) {
-      return { success: false, message: `Team does not have a name` };
+      return { success: false, message: `Base does not have a name` };
     }
 
     try {
-      const team = await prisma.team.update({
+      const base = await prisma.base.update({
         where: { id: Number(event.context.params.id) },
         data: {
           name: body?.name,
@@ -39,27 +39,27 @@ export default defineEventHandler(
           flagZoneLong: body?.flagZoneLong,
         },
       });
-      const teamData: TeamData = {
-        id: team.id,
-        name: team.name,
-        flagZoneLat: team.flagZoneLat,
-        flagZoneLong: team.flagZoneLong,
+      const baseData: BaseData = {
+        id: base.id,
+        name: base.name,
+        flagZoneLat: base.flagZoneLat,
+        flagZoneLong: base.flagZoneLong,
       };
 
-      sendMessage("team", {
-        type: "team",
+      sendMessage("base", {
+        type: "base",
         action: "update",
-        team: teamData,
+        base: baseData,
       });
 
-      return { success: true, team: teamData };
+      return { success: true, base: baseData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner
         if (e.code === "P2002") {
           return {
             success: false,
-            message: `A team already exists with this name`,
+            message: `A base already exists with this name`,
           };
         }
       }

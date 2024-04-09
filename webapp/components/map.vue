@@ -5,12 +5,12 @@ import ColorHash from "color-hash";
 import { DateTime } from "luxon";
 import type { TrackerData } from "~/server/types/tracker";
 
-const { useListAllTeams, teams } = useTeam();
+const { useListAllBases, bases } = useBase();
 const {
-  pending: teamPending,
-  error: teamError,
-  errorMessage: teamErrorMessage,
-} = useListAllTeams();
+  pending: basePending,
+  error: baseError,
+  errorMessage: baseErrorMessage,
+} = useListAllBases();
 
 const { useListAllTrackers, trackers } = useTracker();
 const {
@@ -37,12 +37,12 @@ interface TrackerTraces {
   colour: string;
 }
 
-const teamsToShow = ref<number[]>([]);
-function selectAllTeams() {
-  teamsToShow.value = Object.values(teams.value).map((team) => team.id);
+const basesToShow = ref<number[]>([]);
+function selectAllBases() {
+  basesToShow.value = Object.values(bases.value).map((base) => base.id);
 }
-function deselectAllTeams() {
-  teamsToShow.value = [];
+function deselectAllBases() {
+  basesToShow.value = [];
 }
 const trackersToShow = ref<number[]>([]);
 function selectAllTrackers() {
@@ -55,10 +55,10 @@ function deselectAllTrackers() {
 }
 const flagShownWithinMinutes = ref<number>(60);
 
-const filteredTeams = computed(() => {
-  return Object.values(teams.value)
-    .filter((team) => team.flagZoneLat && team.flagZoneLong)
-    .filter((team) => teamsToShow.value.includes(team.id));
+const filteredBases = computed(() => {
+  return Object.values(bases.value)
+    .filter((base) => base.flagZoneLat && base.flagZoneLong)
+    .filter((base) => basesToShow.value.includes(base.id));
 });
 const filteredTrackers = computed(() => {
   return Object.values(trackers.value).filter((tracker) =>
@@ -94,16 +94,16 @@ const trackerTraces = computed((): TrackerTraces[] => {
 
 const initialCenter = { lat: -37.41012933716494, lng: 144.6960548304394 };
 
-const openedMarkerTeamID = ref<number | null>(null);
-function openMarkerTeam(id: number | null) {
-  openedMarkerTeamID.value = id;
+const openedMarkerBaseID = ref<number | null>(null);
+function openMarkerBase(id: number | null) {
+  openedMarkerBaseID.value = id;
 }
 const openedMarkerFlagID = ref<number | null>(null);
 function openMarkerFlag(id: number | null) {
   openedMarkerFlagID.value = id;
 }
 
-watch(teamPending, (pending) => pending === false && selectAllTeams(), {
+watch(basePending, (pending) => pending === false && selectAllBases(), {
   immediate: true,
 });
 watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
@@ -112,7 +112,7 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 </script>
 
 <template>
-  <div v-if="!teamPending && !flagPending" class="container">
+  <div v-if="!basePending && !flagPending" class="container">
     <nav class="map-controls">
       <div class="flag-show-minutes">
         <h3>Traces</h3>
@@ -133,21 +133,21 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
           <br />of flag traces
         </span>
       </div>
-      <div class="select-team">
-        <h3>Teams</h3>
+      <div class="select-base">
+        <h3>Bases</h3>
         <div class="select-all-buttons">
-          <button type="button" @click="selectAllTeams()">all</button>
-          <button type="button" @click="deselectAllTeams()">none</button>
+          <button type="button" @click="selectAllBases()">all</button>
+          <button type="button" @click="deselectAllBases()">none</button>
         </div>
-        <div v-for="team in teams">
+        <div v-for="base in bases">
           <input
-            v-model="teamsToShow"
+            v-model="basesToShow"
             type="checkbox"
-            :id="`show-team-checkbox-${team.id}`"
-            :value="team.id"
+            :id="`show-base-checkbox-${base.id}`"
+            :value="base.id"
           />
-          <label :for="`show-team-checkbox-${team.id}`">
-            [{{ team.id }}] {{ team.name }}
+          <label :for="`show-base-checkbox-${base.id}`">
+            [{{ base.id }}] {{ base.name }}
           </label>
         </div>
       </div>
@@ -186,31 +186,31 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
           }"
           map-type-id="terrain"
         >
-          <!-- Team Flag Zone Circles -->
+          <!-- Base Flag Zone Circles -->
           <GMapCircle
-            :key="team.id"
-            v-for="team in filteredTeams"
+            :key="base.id"
+            v-for="base in filteredBases"
             :radius="30"
-            :center="{ lat: team.flagZoneLat, lng: team.flagZoneLong }"
+            :center="{ lat: base.flagZoneLat, lng: base.flagZoneLong }"
           />
-          <!-- Team Flag Zone Markers -->
+          <!-- Base Flag Zone Markers -->
           <GMapMarker
-            v-for="team in filteredTeams"
-            :key="team.id"
-            :position="{ lat: team.flagZoneLat, lng: team.flagZoneLong }"
+            v-for="base in filteredBases"
+            :key="base.id"
+            :position="{ lat: base.flagZoneLat, lng: base.flagZoneLong }"
             :clickable="true"
             :icon="{ url: placeBlue, scaledSize: { width: 40, height: 40 } }"
-            @click="openMarkerTeam(team.id)"
+            @click="openMarkerBase(base.id)"
           >
             <GMapInfoWindow
               :closeclick="true"
-              @closeclick="openMarkerTeam(null)"
-              :opened="openedMarkerTeamID === team.id"
+              @closeclick="openMarkerBase(null)"
+              :opened="openedMarkerBaseID === base.id"
             >
               <div style="color: black !important">
-                {{ team.name }}
+                {{ base.name }}
                 <NuxtLink
-                  :to="`/teams/${team.id}`"
+                  :to="`/bases/${base.id}`"
                   style="color: black !important"
                 >
                   Details
@@ -277,7 +277,7 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
   overflow-y: scroll;
 }
 
-.select-team,
+.select-base,
 .select-tracker,
 .flag-show-minutes {
   display: flex;

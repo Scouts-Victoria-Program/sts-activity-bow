@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import type { TeamCreateInput } from "~/server/types/team";
-const { useCreateTeam } = useTeam();
-const { create, created, loading, error, errorMessage } = useCreateTeam();
+import type { BaseCreateInput } from "~/server/types/base";
+const { useCreateBase } = useBase();
+const { create, created, loading, error, errorMessage } = useCreateBase();
 
 const emit = defineEmits<{
   created: [id: number];
 }>();
-const newTeam = ref<TeamCreateInput>({ name: "" });
+const newBase = ref<BaseCreateInput>({ name: "" });
 
 async function submitCreate() {
-  const reqBody: TeamCreateInput = {
-    name: newTeam.value.name,
-    flagZoneLat: newTeam.value.flagZoneLat,
-    flagZoneLong: newTeam.value.flagZoneLong,
+  const reqBody: BaseCreateInput = {
+    name: newBase.value.name,
+    flagZoneLat: newBase.value.flagZoneLat,
+    flagZoneLong: newBase.value.flagZoneLong,
   };
-  const teamId = await create(reqBody);
+  const baseId = await create(reqBody);
 
-  if (teamId) {
-    emit("created", teamId);
+  if (baseId) {
+    emit("created", baseId);
   }
 }
 </script>
@@ -25,25 +25,25 @@ async function submitCreate() {
 <template>
   <form>
     <fieldset>
-      <legend>Create Team</legend>
+      <legend>Create Base</legend>
       <div class="form-row">
-        <label for="form-team-create-name">Team name</label>
-        <input id="form-team-create-name" v-model="newTeam.name" />
+        <label for="form-base-create-name">Base name</label>
+        <input id="form-base-create-name" v-model="newBase.name" />
       </div>
       <div class="form-row">
-        <label for="form-team-create-lat">Lat</label>
+        <label for="form-base-create-lat">Lat</label>
         <input
           type="number"
-          id="form-team-create-lat"
-          v-model="newTeam.flagZoneLat"
+          id="form-base-create-lat"
+          v-model="newBase.flagZoneLat"
         />
       </div>
       <div class="form-row">
-        <label for="form-team-create-long">Long</label>
+        <label for="form-base-create-long">Long</label>
         <input
           type="number"
-          id="form-team-create-long"
-          v-model="newTeam.flagZoneLong"
+          id="form-base-create-long"
+          v-model="newBase.flagZoneLong"
         />
       </div>
       <div v-if="error">{{ errorMessage }}</div>
@@ -53,7 +53,7 @@ async function submitCreate() {
           @click="submitCreate"
           :disabled="loading || created"
         >
-          Create Team
+          Create Base
         </button>
       </div>
     </fieldset>

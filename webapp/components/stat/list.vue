@@ -13,10 +13,10 @@ const { refresh, loading, error, errorMessage } = useFetchStats();
     <div v-else>
       <table v-if="stats">
         <thead>
-          <th>Team</th>
-          <th v-for="team in stats.teams" :key="team.id">
-            <NuxtLink :to="`/teams/${team.id}`">
-              {{ team.id }}
+          <th>Base</th>
+          <th v-for="base in stats.bases" :key="base.id">
+            <NuxtLink :to="`/bases/${base.id}`">
+              {{ base.id }}
             </NuxtLink>
           </th>
         </thead>
@@ -24,13 +24,13 @@ const { refresh, loading, error, errorMessage } = useFetchStats();
           <StatRow
             v-for="(label, statType) in stats.statTypes"
             :label="label"
-            :values="stats.teams.map((team) => team.stats[statType] ?? 0)"
+            :values="stats.bases.map((base) => base.stats[statType] ?? 0)"
           ></StatRow>
         </tbody>
         <tfoot>
           <th>Total</th>
-          <th v-for="team in stats.teams" :key="team.id">
-            {{ team.score }}
+          <th v-for="base in stats.bases" :key="base.id">
+            {{ base.score }}
           </th>
         </tfoot>
       </table>

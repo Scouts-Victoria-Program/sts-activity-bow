@@ -27,7 +27,7 @@ export default defineEventHandler(
         lat: log.lat,
         long: log.long,
         trackerId: log.trackerId,
-        teamId: log.teamId,
+        baseId: log.baseId,
         distance: log.distance,
       };
       return { success: true, log: logData };

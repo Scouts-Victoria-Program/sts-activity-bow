@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { FlagCreateInput } from "~/server/types/flag";
-import type { TeamData } from "~/server/types/team";
+import type { BaseData } from "~/server/types/base";
 import type { TrackerData } from "~/server/types/tracker";
 
 const props = defineProps<{
-  team?: TeamData;
+  base?: BaseData;
   tracker?: TrackerData;
 }>();
 
@@ -21,7 +21,7 @@ const newFlag = ref<FlagCreateInput>({
   lat: 0,
   long: 0,
   trackerId: props.tracker?.id ?? 0,
-  teamId: props.team?.id ?? 0,
+  baseId: props.base?.id ?? 0,
   distance: 0,
 });
 
@@ -33,7 +33,7 @@ async function submitCreate() {
     lat: newFlag.value.lat,
     long: newFlag.value.long,
     trackerId: newFlag.value.trackerId,
-    teamId: newFlag.value.teamId,
+    baseId: newFlag.value.baseId,
     distance: newFlag.value.distance,
   };
   const flagId = await create(reqBody);
@@ -77,8 +77,8 @@ async function submitCreate() {
         <input id="form-log-create-tracker" v-model="newFlag.trackerId" />
       </div>
       <div class="form-row">
-        <label for="form-log-create-team">Team</label>
-        <input id="form-log-create-team" v-model="newFlag.teamId" />
+        <label for="form-log-create-base">Base</label>
+        <input id="form-log-create-base" v-model="newFlag.baseId" />
       </div>
       <div class="form-row">
         <label for="form-log-create-distance">Distance</label>

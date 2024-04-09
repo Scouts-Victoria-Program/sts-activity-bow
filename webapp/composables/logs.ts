@@ -24,7 +24,7 @@ export const useLog = () => {
     },
     useListLogs: (options: {
       where: {
-        teamId?: Ref<number | undefined>;
+        baseId?: Ref<number | undefined>;
         trackerId?: Ref<number | undefined>;
       };
     }) => {
@@ -33,7 +33,7 @@ export const useLog = () => {
       const { data, refresh, pending } = useFetch(`/api/logs`, {
         params: {
           page: currentPage,
-          teamId: options.where.teamId,
+          baseId: options.where.baseId,
           trackerId: options.where.trackerId,
         },
       });

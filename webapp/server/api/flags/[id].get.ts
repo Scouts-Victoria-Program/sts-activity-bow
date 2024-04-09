@@ -1,10 +1,10 @@
-import { Prisma, Flag } from "@prisma/client";
+import { Prisma, TrackerLocation } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { FlagData } from "~/server/types/flag";
+import { TrackerLocationData } from "~/server/types/trackerlocation";
 
 interface ResponseSuccess {
   success: true;
-  flag: FlagData;
+  trackerlocation: TrackerLocationData;
 }
 interface ResponseFailure {
   success: false;
@@ -18,21 +18,21 @@ export default defineEventHandler(
     }
 
     try {
-      const flag = await prisma.flag.findUniqueOrThrow({
+      const trackerlocation = await prisma.trackerlocation.findUniqueOrThrow({
         where: { id: Number(event.context.params.id) },
       });
-      const flagData: FlagData = {
-        id: flag.id,
-        datetime: flag.datetime.toISOString(),
-        windowSize: flag.windowSize,
-        scoreModifier: flag.scoreModifier,
-        lat: flag.lat,
-        long: flag.long,
-        trackerId: flag.trackerId,
-        baseId: flag.baseId,
-        distance: flag.distance,
+      const trackerlocationData: TrackerLocationData = {
+        id: trackerlocation.id,
+        datetime: trackerlocation.datetime.toISOString(),
+        windowSize: trackerlocation.windowSize,
+        scoreModifier: trackerlocation.scoreModifier,
+        lat: trackerlocation.lat,
+        long: trackerlocation.long,
+        trackerId: trackerlocation.trackerId,
+        baseId: trackerlocation.baseId,
+        distance: trackerlocation.distance,
       };
-      return { success: true, flag: flagData };
+      return { success: true, trackerlocation: trackerlocationData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

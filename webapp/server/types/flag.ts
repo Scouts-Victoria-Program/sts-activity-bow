@@ -1,4 +1,4 @@
-export interface FlagCreateInput {
+export interface TrackerLocationCreateInput {
   datetime: string;
   windowSize: number;
   scoreModifier: number;
@@ -9,7 +9,7 @@ export interface FlagCreateInput {
   distance: number;
 }
 
-export interface FlagUpdateInput {
+export interface TrackerLocationUpdateInput {
   id: number;
   datetime: string;
   windowSize: number;
@@ -21,7 +21,7 @@ export interface FlagUpdateInput {
   distance: number;
 }
 
-export interface FlagData {
+export interface TrackerLocationData {
   id: number;
   datetime: string;
   windowSize: number;

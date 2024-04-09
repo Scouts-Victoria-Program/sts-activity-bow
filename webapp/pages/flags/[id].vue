@@ -3,14 +3,14 @@ import { useBreadcrumbs } from "~/types/breadcrumbs";
 import { DateTime } from "luxon";
 
 useHead({
-  title: "Flag",
+  title: "TrackerLocation",
 });
 
 definePageMeta({
   breadcrumbs: useBreadcrumbs([
     { to: `/`, label: `Home` },
-    { to: `/flags`, label: `Flags` },
-    { to: ``, label: `Flag` },
+    { to: `/trackerlocations`, label: `TrackerLocations` },
+    { to: ``, label: `TrackerLocation` },
   ]),
 
   validate: async (route) => {
@@ -23,59 +23,73 @@ definePageMeta({
   },
 });
 const route = useRoute();
-const { data, refresh, pending } = useFetch(`/api/flags/${route.params.id}`);
+const { data, refresh, pending } = useFetch(
+  `/api/trackerlocations/${route.params.id}`
+);
 
-const showFlagUpdate = useState("showFlagUpdate", () => false);
-function flagUpdated(id: number) {
-  showFlagUpdate.value = false;
+const showTrackerLocationUpdate = useState(
+  "showTrackerLocationUpdate",
+  () => false
+);
+function trackerlocationUpdated(id: number) {
+  showTrackerLocationUpdate.value = false;
   refresh();
 }
 
-const showFlagDelete = useState("showFlagDelete", () => false);
-function flagDeleted(id: number) {
-  showFlagDelete.value = false;
+const showTrackerLocationDelete = useState(
+  "showTrackerLocationDelete",
+  () => false
+);
+function trackerlocationDeleted(id: number) {
+  showTrackerLocationDelete.value = false;
   const router = useRouter();
-  router.push(`/flags`);
+  router.push(`/trackerlocations`);
 }
 </script>
 
 <template>
   <div v-if="data && data.success && !pending">
-    <h2>Flag: {{ data.flag.trackerId }}</h2>
-    <button type="button" @click="showFlagUpdate = !showFlagUpdate">
-      {{ showFlagUpdate ? "Hide" : "Show" }} Update Flag
+    <h2>TrackerLocation: {{ data.trackerlocation.trackerId }}</h2>
+    <button
+      type="button"
+      @click="showTrackerLocationUpdate = !showTrackerLocationUpdate"
+    >
+      {{ showTrackerLocationUpdate ? "Hide" : "Show" }} Update TrackerLocation
     </button>
-    <FlagUpdate
-      v-if="showFlagUpdate"
-      :flag="data.flag"
-      @updated="flagUpdated"
-    ></FlagUpdate>
+    <TrackerLocationUpdate
+      v-if="showTrackerLocationUpdate"
+      :trackerlocation="data.trackerlocation"
+      @updated="trackerlocationUpdated"
+    ></TrackerLocationUpdate>
 
-    <button type="button" @click="showFlagDelete = !showFlagDelete">
-      {{ showFlagDelete ? "Hide" : "Show" }} Delete Flag
+    <button
+      type="button"
+      @click="showTrackerLocationDelete = !showTrackerLocationDelete"
+    >
+      {{ showTrackerLocationDelete ? "Hide" : "Show" }} Delete TrackerLocation
     </button>
-    <FlagDelete
-      v-if="showFlagDelete"
-      :flag="data.flag"
-      @deleted="flagDeleted"
-    ></FlagDelete>
+    <TrackerLocationDelete
+      v-if="showTrackerLocationDelete"
+      :trackerlocation="data.trackerlocation"
+      @deleted="trackerlocationDeleted"
+    ></TrackerLocationDelete>
 
-    <div>ID: {{ data.flag.id }}</div>
+    <div>ID: {{ data.trackerlocation.id }}</div>
     <div>
       Datetime:
       {{
-        DateTime.fromISO(data.flag.datetime).toLocaleString(
+        DateTime.fromISO(data.trackerlocation.datetime).toLocaleString(
           DateTime.DATETIME_SHORT
         )
       }}
     </div>
-    <div>WindowSize: {{ data.flag.windowSize }}</div>
-    <div>ScoreModifier: {{ data.flag.scoreModifier }}</div>
-    <div>Lat: {{ data.flag.lat }}</div>
-    <div>Long: {{ data.flag.long }}</div>
-    <div>TrackerId: {{ data.flag.trackerId }}</div>
-    <div>BaseId: {{ data.flag.baseId }}</div>
-    <div>Distance: {{ data.flag.distance }}</div>
+    <div>WindowSize: {{ data.trackerlocation.windowSize }}</div>
+    <div>ScoreModifier: {{ data.trackerlocation.scoreModifier }}</div>
+    <div>Lat: {{ data.trackerlocation.lat }}</div>
+    <div>Long: {{ data.trackerlocation.long }}</div>
+    <div>TrackerId: {{ data.trackerlocation.trackerId }}</div>
+    <div>BaseId: {{ data.trackerlocation.baseId }}</div>
+    <div>Distance: {{ data.trackerlocation.distance }}</div>
   </div>
   <div v-else>loading or error</div>
 </template>

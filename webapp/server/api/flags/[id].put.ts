@@ -1,13 +1,16 @@
-import { Prisma, Flag } from "@prisma/client";
+import { Prisma, TrackerLocation } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { FlagUpdateInput, FlagData } from "~/server/types/flag";
+import {
+  TrackerLocationUpdateInput,
+  TrackerLocationData,
+} from "~/server/types/trackerlocation";
 
 import { useSocketServer } from "~/server/utils/websocket";
 const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  flag: FlagData;
+  trackerlocation: TrackerLocationData;
 }
 interface ResponseFailure {
   success: false;
@@ -20,14 +23,14 @@ export default defineEventHandler(
       return { success: false, message: "missing id in url" };
     }
 
-    const body = await readBody<FlagUpdateInput>(event);
+    const body = await readBody<TrackerLocationUpdateInput>(event);
 
     if (body.id !== Number(event.context.params?.id)) {
       return { success: false, message: `ID in body does not match url path` };
     }
 
     try {
-      const flag = await prisma.flag.update({
+      const trackerlocation = await prisma.trackerlocation.update({
         where: { id: Number(event.context.params.id) },
         data: {
           datetime: body?.datetime,
@@ -40,32 +43,32 @@ export default defineEventHandler(
           distance: body?.distance,
         },
       });
-      const flagData: FlagData = {
-        id: flag.id,
-        datetime: flag.datetime.toISOString(),
-        windowSize: flag.windowSize,
-        scoreModifier: flag.scoreModifier,
-        lat: flag.lat,
-        long: flag.long,
-        trackerId: flag.trackerId,
-        baseId: flag.baseId,
-        distance: flag.distance,
+      const trackerlocationData: TrackerLocationData = {
+        id: trackerlocation.id,
+        datetime: trackerlocation.datetime.toISOString(),
+        windowSize: trackerlocation.windowSize,
+        scoreModifier: trackerlocation.scoreModifier,
+        lat: trackerlocation.lat,
+        long: trackerlocation.long,
+        trackerId: trackerlocation.trackerId,
+        baseId: trackerlocation.baseId,
+        distance: trackerlocation.distance,
       };
 
-      sendMessage("flag", {
-        type: "flag",
+      sendMessage("trackerlocation", {
+        type: "trackerlocation",
         action: "update",
-        flag: flagData,
+        trackerlocation: trackerlocationData,
       });
 
-      return { success: true, flag: flagData };
+      return { success: true, trackerlocation: trackerlocationData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner
         if (e.code === "P2002") {
           return {
             success: false,
-            message: `A flag already exists with this name`,
+            message: `A trackerlocation already exists with this name`,
           };
         }
       }

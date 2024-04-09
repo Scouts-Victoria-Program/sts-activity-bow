@@ -1,13 +1,16 @@
-import { Prisma, Flag } from "@prisma/client";
+import { Prisma, TrackerLocation } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { FlagCreateInput, FlagData } from "~/server/types/flag";
+import {
+  TrackerLocationCreateInput,
+  TrackerLocationData,
+} from "~/server/types/trackerlocation";
 
 import { useSocketServer } from "~/server/utils/websocket";
 const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  flag: FlagData;
+  trackerlocation: TrackerLocationData;
 }
 interface ResponseFailure {
   success: false;
@@ -16,10 +19,10 @@ interface ResponseFailure {
 
 export default defineEventHandler(
   async (event): Promise<ResponseSuccess | ResponseFailure> => {
-    const body = await readBody<FlagCreateInput>(event);
+    const body = await readBody<TrackerLocationCreateInput>(event);
 
     try {
-      const flag = await prisma.flag.create({
+      const trackerlocation = await prisma.trackerlocation.create({
         data: {
           datetime: body?.datetime,
           windowSize: body?.windowSize,
@@ -31,32 +34,32 @@ export default defineEventHandler(
           distance: body?.distance,
         },
       });
-      const flagData: FlagData = {
-        id: flag.id,
-        datetime: flag.datetime.toISOString(),
-        windowSize: flag.windowSize,
-        scoreModifier: flag.scoreModifier,
-        lat: flag.lat,
-        long: flag.long,
-        trackerId: flag.trackerId,
-        baseId: flag.baseId,
-        distance: flag.distance,
+      const trackerlocationData: TrackerLocationData = {
+        id: trackerlocation.id,
+        datetime: trackerlocation.datetime.toISOString(),
+        windowSize: trackerlocation.windowSize,
+        scoreModifier: trackerlocation.scoreModifier,
+        lat: trackerlocation.lat,
+        long: trackerlocation.long,
+        trackerId: trackerlocation.trackerId,
+        baseId: trackerlocation.baseId,
+        distance: trackerlocation.distance,
       };
 
-      sendMessage("flag", {
-        type: "flag",
+      sendMessage("trackerlocation", {
+        type: "trackerlocation",
         action: "create",
-        flag: flagData,
+        trackerlocation: trackerlocationData,
       });
 
-      return { success: true, flag: flagData };
+      return { success: true, trackerlocation: trackerlocationData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner
         if (e.code === "P2002") {
           return {
             success: false,
-            message: `A flag already exists with this name`,
+            message: `A trackerlocation already exists with this name`,
           };
         }
       }

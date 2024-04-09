@@ -1,54 +1,70 @@
 import type {
-  FlagData,
-  FlagCreateInput,
-  FlagUpdateInput,
-} from "~/server/types/flag";
+  TrackerLocationData,
+  TrackerLocationCreateInput,
+  TrackerLocationUpdateInput,
+} from "~/server/types/trackerlocation";
 import { usePageControls } from "./pageControls";
 import { DateTime } from "luxon";
 
-interface FetchFlagComposable {
-  flag: ComputedRef<FlagData | null>;
+interface FetchTrackerLocationComposable {
+  trackerlocation: ComputedRef<TrackerLocationData | null>;
   loading: Ref<boolean>;
 }
 
 // This is not good practice and you should never store state outside
 // the composable constructor function. I havent been able to work out
 // how to better define per entity composable fns.
-const fetchFlagComposable: Record<string, FetchFlagComposable> = {};
+const fetchTrackerLocationComposable: Record<
+  string,
+  FetchTrackerLocationComposable
+> = {};
 
-export const useFlag = () => {
-  const flagsState = useState<Record<string, FlagData>>("flags", () => ({}));
+export const useTrackerLocation = () => {
+  const trackerlocationsState = useState<Record<string, TrackerLocationData>>(
+    "trackerlocations",
+    () => ({})
+  );
 
   return {
-    flags: flagsState,
-    getFlag(id: number): ComputedRef<FlagData | null> {
-      return computed(() => flagsState.value[String(id)] ?? null);
+    trackerlocations: trackerlocationsState,
+    getTrackerLocation(id: number): ComputedRef<TrackerLocationData | null> {
+      return computed(() => trackerlocationsState.value[String(id)] ?? null);
     },
-    setFlag(flag: FlagData): void {
-      flagsState.value[String(flag.id)] = flag;
+    setTrackerLocation(trackerlocation: TrackerLocationData): void {
+      trackerlocationsState.value[String(trackerlocation.id)] = trackerlocation;
     },
-    setFlags(flags: FlagData[]): void {
-      flags.forEach((flag) => (flagsState.value[String(flag.id)] = flag));
+    setTrackerLocations(trackerlocations: TrackerLocationData[]): void {
+      trackerlocations.forEach(
+        (trackerlocation) =>
+          (trackerlocationsState.value[String(trackerlocation.id)] =
+            trackerlocation)
+      );
     },
-    removeFlag(flagId: number): void {
-      delete flagsState.value[String(flagId)];
+    removeTrackerLocation(trackerlocationId: number): void {
+      delete trackerlocationsState.value[String(trackerlocationId)];
     },
-    useFetchFlag: (flagId: number | null): FetchFlagComposable => {
-      if (flagId === null) {
+    useFetchTrackerLocation: (
+      trackerlocationId: number | null
+    ): FetchTrackerLocationComposable => {
+      if (trackerlocationId === null) {
         return {
-          flag: computed(() => null),
+          trackerlocation: computed(() => null),
           loading: ref(false),
         };
       }
 
-      if (fetchFlagComposable[flagId]) {
-        return fetchFlagComposable[flagId];
+      if (fetchTrackerLocationComposable[trackerlocationId]) {
+        return fetchTrackerLocationComposable[trackerlocationId];
       }
 
-      const { data, pending } = useFetch(`/api/flags/${flagId}`, {});
+      const { data, pending } = useFetch(
+        `/api/trackerlocations/${trackerlocationId}`,
+        {}
+      );
 
-      fetchFlagComposable[flagId] = {
-        flag: useFlag().getFlag(flagId),
+      fetchTrackerLocationComposable[trackerlocationId] = {
+        trackerlocation:
+          useTrackerLocation().getTrackerLocation(trackerlocationId),
         loading: pending,
       };
 
@@ -56,12 +72,12 @@ export const useFlag = () => {
         if (!value?.success) {
           return;
         }
-        useFlag().setFlag(value.flag);
+        useTrackerLocation().setTrackerLocation(value.trackerlocation);
       });
 
-      return fetchFlagComposable[flagId];
+      return fetchTrackerLocationComposable[trackerlocationId];
     },
-    useListFlags: (options: {
+    useListTrackerLocations: (options: {
       where: {
         baseId?: Ref<number | undefined>;
         trackerId?: Ref<number | undefined>;
@@ -69,7 +85,7 @@ export const useFlag = () => {
     }) => {
       const { currentPage, useUiPageControls } = usePageControls();
 
-      const { data, refresh, pending } = useFetch(`/api/flags`, {
+      const { data, refresh, pending } = useFetch(`/api/trackerlocations`, {
         params: {
           page: currentPage,
           baseId: options.where.baseId,
@@ -87,18 +103,24 @@ export const useFlag = () => {
         if (!value?.success) {
           return;
         }
-        useFlag().setFlags(value.flags);
+        useTrackerLocation().setTrackerLocations(value.trackerlocations);
       });
 
       return {
-        displayFlags: computed(() => {
+        displayTrackerLocations: computed(() => {
           if (!data.value?.success) {
             return [];
           }
 
-          return data.value?.flags
-            .map(({ id: flagId }) => useFlag().getFlag(flagId).value)
-            .filter((flag): flag is FlagData => flag !== null);
+          return data.value?.trackerlocations
+            .map(
+              ({ id: trackerlocationId }) =>
+                useTrackerLocation().getTrackerLocation(trackerlocationId).value
+            )
+            .filter(
+              (trackerlocation): trackerlocation is TrackerLocationData =>
+                trackerlocation !== null
+            );
         }),
         uiPageControls,
         refresh,
@@ -110,16 +132,18 @@ export const useFlag = () => {
           if (data.value?.success === false) {
             return data.value.message;
           }
-          return "Unable to fetch flag list";
+          return "Unable to fetch trackerlocation list";
         }),
       };
     },
-    useListAllFlags: (maxAge: number = 1000) => {
+    useListAllTrackerLocations: (maxAge: number = 1000) => {
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
-      async function fetchFlagPage(page: number = 1): Promise<number[]> {
-        const { data } = await useFetch(`/api/flags`, {
+      async function fetchTrackerLocationPage(
+        page: number = 1
+      ): Promise<number[]> {
+        const { data } = await useFetch(`/api/trackerlocations`, {
           params: { page: page },
         });
 
@@ -129,40 +153,48 @@ export const useFlag = () => {
           return [];
         }
 
-        useFlag().setFlags(data.value.flags);
+        useTrackerLocation().setTrackerLocations(data.value.trackerlocations);
 
-        const flagIds = data.value.flags.map((flag) => flag.id);
+        const trackerlocationIds = data.value.trackerlocations.map(
+          (trackerlocation) => trackerlocation.id
+        );
 
         if (data.value.maxPages <= page) {
-          return flagIds; // Flag Ids from last page.
+          return trackerlocationIds; // TrackerLocation Ids from last page.
         }
 
         if (
           maxAge <
-          DateTime.fromISO(data.value.flags[0].datetime)
+          DateTime.fromISO(data.value.trackerlocations[0].datetime)
             .diffNow("minutes")
             .negate().minutes
         ) {
-          return flagIds; // Dont fetch further pages, they are too long ago.
+          return trackerlocationIds; // Dont fetch further pages, they are too long ago.
         }
 
         return [
-          ...flagIds, // Flag Ids from current page.
-          ...(await fetchFlagPage(page + 1)), // Flag Ids from future pages.
+          ...trackerlocationIds, // TrackerLocation Ids from current page.
+          ...(await fetchTrackerLocationPage(page + 1)), // TrackerLocation Ids from future pages.
         ];
       }
 
       const pending = ref<boolean>(true);
 
-      fetchFlagPage()
-        .then((flagIdsFetched) => {
-          const { flags, removeFlag } = useFlag();
+      fetchTrackerLocationPage()
+        .then((trackerlocationIdsFetched) => {
+          const { trackerlocations, removeTrackerLocation } =
+            useTrackerLocation();
 
-          const flagsIdsNotFetched = Object.values(flags)
-            .filter((flag) => !flagIdsFetched.includes(flag.id))
-            .map((flag) => flag.id);
+          const trackerlocationsIdsNotFetched = Object.values(trackerlocations)
+            .filter(
+              (trackerlocation) =>
+                !trackerlocationIdsFetched.includes(trackerlocation.id)
+            )
+            .map((trackerlocation) => trackerlocation.id);
 
-          flagsIdsNotFetched.forEach((flagId) => removeFlag(flagId));
+          trackerlocationsIdsNotFetched.forEach((trackerlocationId) =>
+            removeTrackerLocation(trackerlocationId)
+          );
         })
         .catch(() => {
           error.value = true;
@@ -178,20 +210,22 @@ export const useFlag = () => {
         errorMessage,
       };
     },
-    useCreateFlag: () => {
+    useCreateTrackerLocation: () => {
       const created = ref<boolean>(false);
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async create(newFlag: FlagCreateInput): Promise<number | null> {
+        async create(
+          newTrackerLocation: TrackerLocationCreateInput
+        ): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/flags`, {
+          const data = await $fetch(`/api/trackerlocations`, {
             method: "post",
-            body: newFlag,
+            body: newTrackerLocation,
           });
 
           if (data.success === false) {
@@ -201,13 +235,13 @@ export const useFlag = () => {
             return null;
           }
 
-          useFlag().setFlag(data.flag);
+          useTrackerLocation().setTrackerLocation(data.trackerlocation);
 
           // Set `created` ref so create button can be disabled
           // forever once we've had a successful creation.
           created.value = true;
 
-          return data.flag.id;
+          return data.trackerlocation.id;
         },
         created,
         loading,
@@ -215,20 +249,25 @@ export const useFlag = () => {
         errorMessage,
       };
     },
-    useUpdateFlag: () => {
+    useUpdateTrackerLocation: () => {
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async update(updatedFlag: FlagUpdateInput): Promise<number | null> {
+        async update(
+          updatedTrackerLocation: TrackerLocationUpdateInput
+        ): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/flags/${updatedFlag.id}`, {
-            method: "put",
-            body: updatedFlag,
-          });
+          const data = await $fetch(
+            `/api/trackerlocations/${updatedTrackerLocation.id}`,
+            {
+              method: "put",
+              body: updatedTrackerLocation,
+            }
+          );
 
           if (data.success === false) {
             loading.value = false;
@@ -237,29 +276,34 @@ export const useFlag = () => {
             return null;
           }
 
-          useFlag().setFlag(data.flag);
+          useTrackerLocation().setTrackerLocation(data.trackerlocation);
 
-          return data.flag.id;
+          return data.trackerlocation.id;
         },
         loading,
         error,
         errorMessage,
       };
     },
-    useDeleteFlag: () => {
+    useDeleteTrackerLocation: () => {
       const deleted = ref<boolean>(false);
       const loading = ref<boolean>(false);
       const error = ref<boolean>(false);
       const errorMessage = ref<string | undefined>(undefined);
 
       return {
-        async deleteFn(deleteFlagId: number): Promise<number | null> {
+        async deleteFn(
+          deleteTrackerLocationId: number
+        ): Promise<number | null> {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/flags/${deleteFlagId}`, {
-            method: "delete",
-          });
+          const data = await $fetch(
+            `/api/trackerlocations/${deleteTrackerLocationId}`,
+            {
+              method: "delete",
+            }
+          );
 
           if (data.success === false) {
             loading.value = false;
@@ -268,13 +312,13 @@ export const useFlag = () => {
             return null;
           }
 
-          useFlag().removeFlag(data.flag.id);
+          useTrackerLocation().removeTrackerLocation(data.trackerlocation.id);
 
           // Set `deleted` ref so delete button can be disabled
           // forever once we've had a successful creation.
           deleted.value = true;
 
-          return data.flag.id;
+          return data.trackerlocation.id;
         },
         deleted,
         loading,

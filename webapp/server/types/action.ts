@@ -1,6 +1,6 @@
 export const ActionOptions = {
   violation: "Violation: General",
-  violationFlag: "Violation: Flag",
+  violationTrackerLocation: "Violation: TrackerLocation",
   violationMissingLifeToken: "Violation: Missing Life Token",
   respawn: "Respawn",
   kill: "Kill",

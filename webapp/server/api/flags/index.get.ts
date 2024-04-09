@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "~/server/prisma";
-import { FlagData } from "~/server/types/flag";
+import { TrackerLocationData } from "~/server/types/trackerlocation";
 
 interface ResponseSuccess {
   success: true;
@@ -8,7 +8,7 @@ interface ResponseSuccess {
   perPage: number;
   maxPages: number;
   maxItems: number;
-  flags: FlagData[];
+  trackerlocations: TrackerLocationData[];
 }
 interface ResponseFailure {
   success: false;
@@ -30,7 +30,7 @@ export default defineEventHandler(
       const page = Number(params.page) || 1;
       const perPage = 30;
 
-      const flags = await prisma.flag.findMany({
+      const trackerlocations = await prisma.trackerlocation.findMany({
         skip: perPage * (page - 1),
         take: perPage,
         orderBy: {
@@ -40,17 +40,17 @@ export default defineEventHandler(
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.flagCapturedDistance }
+            ? { lte: config.public.trackerlocationCapturedDistance }
             : undefined,
         },
       });
 
-      const flagsCount = await prisma.flag.count({
+      const trackerlocationsCount = await prisma.trackerlocation.count({
         where: {
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.flagCapturedDistance }
+            ? { lte: config.public.trackerlocationCapturedDistance }
             : undefined,
         },
       });
@@ -59,21 +59,21 @@ export default defineEventHandler(
         success: true,
         page: page,
         perPage: perPage,
-        maxPages: Math.ceil(flagsCount / perPage),
-        maxItems: flagsCount,
-        flags: flags.map((flag) => {
-          const flagData: FlagData = {
-            id: flag.id,
-            datetime: flag.datetime.toISOString(),
-            windowSize: flag.windowSize,
-            scoreModifier: flag.scoreModifier,
-            lat: flag.lat,
-            long: flag.long,
-            trackerId: flag.trackerId,
-            baseId: flag.baseId,
-            distance: flag.distance,
+        maxPages: Math.ceil(trackerlocationsCount / perPage),
+        maxItems: trackerlocationsCount,
+        trackerlocations: trackerlocations.map((trackerlocation) => {
+          const trackerlocationData: TrackerLocationData = {
+            id: trackerlocation.id,
+            datetime: trackerlocation.datetime.toISOString(),
+            windowSize: trackerlocation.windowSize,
+            scoreModifier: trackerlocation.scoreModifier,
+            lat: trackerlocation.lat,
+            long: trackerlocation.long,
+            trackerId: trackerlocation.trackerId,
+            baseId: trackerlocation.baseId,
+            distance: trackerlocation.distance,
           };
-          return flagData;
+          return trackerlocationData;
         }),
       };
     } catch (e) {

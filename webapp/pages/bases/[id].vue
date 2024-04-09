@@ -61,11 +61,11 @@ function baseDeleted(id: number) {
 
     <div>ID: {{ data.base.id }}</div>
     <div>Name: {{ data.base.name }}</div>
-    <div>Lat: {{ data.base.flagZoneLat }}</div>
-    <div>Long: {{ data.base.flagZoneLong }}</div>
+    <div>Lat: {{ data.base.trackerlocationZoneLat }}</div>
+    <div>Long: {{ data.base.trackerlocationZoneLong }}</div>
 
     <ActionList :base="data.base"></ActionList>
-    <FlagList :base="data.base"></FlagList>
+    <TrackerLocationList :base="data.base"></TrackerLocationList>
   </div>
   <div v-else>loading or error</div>
 </template>

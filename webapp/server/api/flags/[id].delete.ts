@@ -1,4 +1,4 @@
-import { Prisma, Flag } from "@prisma/client";
+import { Prisma, TrackerLocation } from "@prisma/client";
 import prisma from "~/server/prisma";
 
 import { useSocketServer } from "~/server/utils/websocket";
@@ -6,7 +6,7 @@ const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  flag: { id: number };
+  trackerlocation: { id: number };
 }
 interface ResponseFailure {
   success: false;
@@ -20,19 +20,19 @@ export default defineEventHandler(
     }
 
     try {
-      const flagId = Number(event.context.params.id);
+      const trackerlocationId = Number(event.context.params.id);
 
-      await prisma.flag.delete({
-        where: { id: flagId },
+      await prisma.trackerlocation.delete({
+        where: { id: trackerlocationId },
       });
 
-      sendMessage("flag", {
-        type: "flag",
+      sendMessage("trackerlocation", {
+        type: "trackerlocation",
         action: "delete",
-        flagId: flagId,
+        trackerlocationId: trackerlocationId,
       });
 
-      return { success: true, flag: { id: flagId } };
+      return { success: true, trackerlocation: { id: trackerlocationId } };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

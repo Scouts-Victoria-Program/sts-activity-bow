@@ -63,7 +63,7 @@ function trackerDeleted(id: number) {
     <div>Name: {{ data.tracker.name }}</div>
     <div>Score Modifier: {{ data.tracker.scoreModifier }}</div>
 
-    <FlagList :tracker="data.tracker"></FlagList>
+    <TrackerLocationList :tracker="data.tracker"></TrackerLocationList>
   </div>
   <div v-else>loading or error</div>
 </template>

@@ -17,37 +17,50 @@ const { fields, useUiFilterControls } = useListFilters<{
 });
 const uiFilterControls = useUiFilterControls();
 
-const { useListFlags } = useFlag();
-const { displayFlags, uiPageControls, refresh, loading, error, errorMessage } =
-  useListFlags({
-    where: {
-      baseId: fields.baseId,
-      trackerId: fields.trackerId,
-    },
-  });
+const { useListTrackerLocations } = useTrackerLocation();
+const {
+  displayTrackerLocations,
+  uiPageControls,
+  refresh,
+  loading,
+  error,
+  errorMessage,
+} = useListTrackerLocations({
+  where: {
+    baseId: fields.baseId,
+    trackerId: fields.trackerId,
+  },
+});
 
-const showFlagCreate = useState("showFlagCreate", () => false);
-function flagCreated(newId: number) {
-  showFlagCreate.value = false;
+const showTrackerLocationCreate = useState(
+  "showTrackerLocationCreate",
+  () => false
+);
+function trackerlocationCreated(newId: number) {
+  showTrackerLocationCreate.value = false;
   refresh();
 }
 </script>
 
 <template>
   <div>
-    <h2>Flags</h2>
+    <h2>TrackerLocations</h2>
 
-    <FlagCreate
-      v-if="showFlagCreate"
-      @created="flagCreated"
+    <TrackerLocationCreate
+      v-if="showTrackerLocationCreate"
+      @created="trackerlocationCreated"
       :tracker="props.tracker"
       :base="props.base"
-    ></FlagCreate>
+    ></TrackerLocationCreate>
 
     <UiListControls>
       <div>
-        <button type="button" @click="showFlagCreate = !showFlagCreate">
-          {{ showFlagCreate ? "Hide" : "Show" }} Create Flag
+        <button
+          type="button"
+          @click="showTrackerLocationCreate = !showTrackerLocationCreate"
+        >
+          {{ showTrackerLocationCreate ? "Hide" : "Show" }} Create
+          TrackerLocation
         </button>
       </div>
 
@@ -56,7 +69,9 @@ function flagCreated(newId: number) {
       <UiFilterControls :filters="uiFilterControls"></UiFilterControls>
     </UiListControls>
 
-    <div v-if="error">Unable to load flag list {{ errorMessage }}</div>
+    <div v-if="error">
+      Unable to load trackerlocation list {{ errorMessage }}
+    </div>
     <TableSkeleton v-else-if="loading" :rows="15" :columns="10"></TableSkeleton>
     <table v-else>
       <thead>
@@ -74,29 +89,38 @@ function flagCreated(newId: number) {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="flag in displayFlags" :key="flag.id">
-          <td>{{ flag.id }}</td>
+        <tr
+          v-for="trackerlocation in displayTrackerLocations"
+          :key="trackerlocation.id"
+        >
+          <td>{{ trackerlocation.id }}</td>
           <td>
             {{
-              DateTime.fromISO(flag.datetime).toLocaleString(
+              DateTime.fromISO(trackerlocation.datetime).toLocaleString(
                 DateTime.DATETIME_SHORT
               )
             }}
           </td>
-          <td>{{ flag.windowSize }}</td>
-          <td>{{ flag.scoreModifier }}</td>
-          <td>{{ flag.lat }}</td>
-          <td>{{ flag.long }}</td>
+          <td>{{ trackerlocation.windowSize }}</td>
+          <td>{{ trackerlocation.scoreModifier }}</td>
+          <td>{{ trackerlocation.lat }}</td>
+          <td>{{ trackerlocation.long }}</td>
           <td>
-            <NuxtLink :to="`/trackers/${flag.trackerId}`">{{
-              flag.trackerId
+            <NuxtLink :to="`/trackers/${trackerlocation.trackerId}`">{{
+              trackerlocation.trackerId
             }}</NuxtLink>
           </td>
           <td>
-            <NuxtLink :to="`/bases/${flag.baseId}`">{{ flag.baseId }}</NuxtLink>
+            <NuxtLink :to="`/bases/${trackerlocation.baseId}`">{{
+              trackerlocation.baseId
+            }}</NuxtLink>
           </td>
-          <td>{{ flag.distance }}</td>
-          <td><NuxtLink :to="`/flags/${flag.id}`">show</NuxtLink></td>
+          <td>{{ trackerlocation.distance }}</td>
+          <td>
+            <NuxtLink :to="`/trackerlocations/${trackerlocation.id}`"
+              >show</NuxtLink
+            >
+          </td>
         </tr>
       </tbody>
     </table>

@@ -1,6 +1,6 @@
 import type {
   MessageDataAction,
-  MessageDataFlag,
+  MessageDataTrackerLocation,
   MessageDataLog,
   MessageDataStatus,
   MessageDataBase,
@@ -11,7 +11,7 @@ import { DateTime } from "luxon";
 let socket: ReturnType<typeof useSocket> | null = null;
 
 interface Entity {
-  type: "action" | "flag" | "log" | "base" | "tracker";
+  type: "action" | "trackerlocation" | "log" | "base" | "tracker";
   id: number;
 }
 export type WebSocketLog = {
@@ -58,7 +58,7 @@ export const useWebSockets = () => {
       // Listen for messages
       socket.on("status", handleStatus);
       socket.on("action", handleAction);
-      socket.on("flag", handleFlag);
+      socket.on("trackerlocation", handleTrackerLocation);
       socket.on("base", handleBase);
       socket.on("tracker", handleTracker);
       socket.on("log", handleLog);
@@ -122,31 +122,31 @@ function handleAction(data: MessageDataAction) {
       break;
   }
 }
-function handleFlag(data: MessageDataFlag) {
-  const { setFlag, removeFlag } = useFlag();
+function handleTrackerLocation(data: MessageDataTrackerLocation) {
+  const { setTrackerLocation, removeTrackerLocation } = useTrackerLocation();
 
   switch (data.action) {
     case "create":
-      setFlag(data.flag);
+      setTrackerLocation(data.trackerlocation);
 
       log({
-        entity: { type: "flag", id: data.flag.id },
-        related: buildRelated(data.flag),
+        entity: { type: "trackerlocation", id: data.trackerlocation.id },
+        related: buildRelated(data.trackerlocation),
         message: "created",
       });
       break;
     case "update":
-      setFlag(data.flag);
+      setTrackerLocation(data.trackerlocation);
       log({
-        entity: { type: "flag", id: data.flag.id },
-        related: buildRelated(data.flag),
+        entity: { type: "trackerlocation", id: data.trackerlocation.id },
+        related: buildRelated(data.trackerlocation),
         message: "updated",
       });
       break;
     case "delete":
-      removeFlag(data.flagId);
+      removeTrackerLocation(data.trackerlocationId);
       log({
-        entity: { type: "flag", id: data.flagId },
+        entity: { type: "trackerlocation", id: data.trackerlocationId },
         related: [],
         message: "deleted",
       });

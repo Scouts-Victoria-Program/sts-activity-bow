@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import type { FlagData } from "~/server/types/flag";
-const { useDeleteFlag } = useFlag();
-const { deleteFn, deleted, loading, error, errorMessage } = useDeleteFlag();
+import type { TrackerLocationData } from "~/server/types/trackerlocation";
+const { useDeleteTrackerLocation } = useTrackerLocation();
+const { deleteFn, deleted, loading, error, errorMessage } =
+  useDeleteTrackerLocation();
 
 const emit = defineEmits<{
   deleted: [id: number];
 }>();
 const props = defineProps<{
-  flag: FlagData;
+  trackerlocation: TrackerLocationData;
 }>();
 
 async function submitDelete() {
-  const flagId = await deleteFn(props.flag.id);
+  const trackerlocationId = await deleteFn(props.trackerlocation.id);
 
-  if (flagId) {
-    emit("deleted", flagId);
+  if (trackerlocationId) {
+    emit("deleted", trackerlocationId);
   }
 }
 </script>
@@ -22,11 +23,11 @@ async function submitDelete() {
 <template>
   <form>
     <fieldset>
-      <legend>Delete Flag</legend>
+      <legend>Delete TrackerLocation</legend>
 
       <div style="color: red">
-        Just checking that you are wanting to delete the flag:<br />
-        "{{ flag.datetime }}" [id={{ flag.id }}]
+        Just checking that you are wanting to delete the trackerlocation:<br />
+        "{{ trackerlocation.datetime }}" [id={{ trackerlocation.id }}]
       </div>
 
       <div v-if="error">{{ errorMessage }}</div>
@@ -37,7 +38,7 @@ async function submitDelete() {
           @click="submitDelete"
           :disabled="loading || deleted"
         >
-          Delete Flag
+          Delete TrackerLocation
         </button>
       </div>
     </fieldset>

@@ -13,16 +13,16 @@ const props = defineProps<{
 const newBase = ref<BaseUpdateInput>({
   id: props.base.id,
   name: props.base.name,
-  flagZoneLat: props.base.flagZoneLat,
-  flagZoneLong: props.base.flagZoneLong,
+  trackerlocationZoneLat: props.base.trackerlocationZoneLat,
+  trackerlocationZoneLong: props.base.trackerlocationZoneLong,
 });
 
 async function submitUpdate() {
   const reqBody: BaseUpdateInput = {
     id: newBase.value.id,
     name: newBase.value.name,
-    flagZoneLat: newBase.value.flagZoneLat,
-    flagZoneLong: newBase.value.flagZoneLong,
+    trackerlocationZoneLat: newBase.value.trackerlocationZoneLat,
+    trackerlocationZoneLong: newBase.value.trackerlocationZoneLong,
   };
 
   const baseId = await update(reqBody);
@@ -49,7 +49,7 @@ async function submitUpdate() {
         <input
           type="number"
           id="form-base-update-lat"
-          v-model="newBase.flagZoneLat"
+          v-model="newBase.trackerlocationZoneLat"
         />
       </div>
       <div class="form-row">
@@ -57,7 +57,7 @@ async function submitUpdate() {
         <input
           type="number"
           id="form-base-update-long"
-          v-model="newBase.flagZoneLong"
+          v-model="newBase.trackerlocationZoneLong"
         />
       </div>
       <div v-if="error">{{ errorMessage }}</div>

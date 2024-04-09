@@ -14,7 +14,7 @@ definePageMeta({
   <div>
     <div class="hero">
       <p>Moonee Valley District Scouts presents</p>
-      <h2>Capture the Flag: A game of stealth of tactics</h2>
+      <h2>Capture the TrackerLocation: A game of stealth of tactics</h2>
     </div>
 
     <h3>View the Game Map:</h3>
@@ -27,7 +27,7 @@ definePageMeta({
       <li><NuxtLink :to="`/bases`">Base list</NuxtLink></li>
     </ul>
 
-    <h3>Locate Flags:</h3>
+    <h3>Locate TrackerLocations:</h3>
     <ul>
       <li><NuxtLink :to="`/trackers`">Tracker list</NuxtLink></li>
     </ul>
@@ -35,8 +35,9 @@ definePageMeta({
     <h3>Browse the raw log data:</h3>
     <ul>
       <li>
-        <NuxtLink :to="`/flags`">
-          Flag list (in {{ $config.public.flagWindowIntervalMinutes }} minute
+        <NuxtLink :to="`/trackerlocations`">
+          TrackerLocation list (in
+          {{ $config.public.trackerlocationWindowIntervalMinutes }} minute
           windows)
         </NuxtLink>
       </li>

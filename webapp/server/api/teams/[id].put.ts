@@ -35,15 +35,15 @@ export default defineEventHandler(
         where: { id: Number(event.context.params.id) },
         data: {
           name: body?.name,
-          flagZoneLat: body?.flagZoneLat,
-          flagZoneLong: body?.flagZoneLong,
+          trackerlocationZoneLat: body?.trackerlocationZoneLat,
+          trackerlocationZoneLong: body?.trackerlocationZoneLong,
         },
       });
       const baseData: BaseData = {
         id: base.id,
         name: base.name,
-        flagZoneLat: base.flagZoneLat,
-        flagZoneLong: base.flagZoneLong,
+        trackerlocationZoneLat: base.trackerlocationZoneLat,
+        trackerlocationZoneLong: base.trackerlocationZoneLong,
       };
 
       sendMessage("base", {

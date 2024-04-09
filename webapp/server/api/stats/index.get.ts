@@ -68,8 +68,8 @@ class StatBuilder {
       const baseData: BaseData = {
         id: base.id,
         name: base.name,
-        flagZoneLat: base.flagZoneLat,
-        flagZoneLong: base.flagZoneLong,
+        trackerlocationZoneLat: base.trackerlocationZoneLat,
+        trackerlocationZoneLong: base.trackerlocationZoneLong,
       };
       return baseData;
     });
@@ -124,9 +124,9 @@ class BaseStatManager {
   }
 
   async generateStats(): Promise<void> {
-    await this.calculateFlagMinutes();
-    await this.calculateFlagVisibilityViolations();
-    await this.calculateConcurrentFlags();
+    await this.calculateTrackerLocationMinutes();
+    await this.calculateTrackerLocationVisibilityViolations();
+    await this.calculateConcurrentTrackerLocations();
     await this.calculateCapturedLifeTokens();
     await this.calculateMissingLifeTokens();
     await this.calculateRespawns();
@@ -134,26 +134,26 @@ class BaseStatManager {
     await this.calculateOtherActions();
 
     //endOfGame: {
-    //   flagPossesion: number;
+    //   trackerlocationPossesion: number;
     //   lifeTokenPossesion: number;
     // };
     // baseWith: {
-    //   mostConcurrentFlags: number;
+    //   mostConcurrentTrackerLocations: number;
     //   mostLifeTokensCaptured: number;
     //   mostLifeTokenslost: number;
-    //   longestTimeWithFlag: number;
-    //   longestTimeWithoutFlag: number;
+    //   longestTimeWithTrackerLocation: number;
+    //   longestTimeWithoutTrackerLocation: number;
     // };
   }
 
-  async calculateFlagMinutes(): Promise<void> {
+  async calculateTrackerLocationMinutes(): Promise<void> {
     const config = useRuntimeConfig();
 
-    const flagTraces = await this.prisma.flag.findMany({
+    const trackerlocationTraces = await this.prisma.trackerlocation.findMany({
       where: {
         baseId: this.base.id,
         distance: {
-          lte: config.public.flagCapturedDistance,
+          lte: config.public.trackerlocationCapturedDistance,
         },
       },
       orderBy: {
@@ -161,166 +161,168 @@ class BaseStatManager {
       },
     });
 
-    // Calculate flag minutes.
-    const flagMinutes = flagTraces.reduce(
-      (acc, flagTrace) => acc + flagTrace.windowSize,
+    // Calculate trackerlocation minutes.
+    const trackerlocationMinutes = trackerlocationTraces.reduce(
+      (acc, trackerlocationTrace) => acc + trackerlocationTrace.windowSize,
       0
     );
-    const flagMinutesScore = flagTraces.reduce(
-      (acc, flagTrace) =>
+    const trackerlocationMinutesScore = trackerlocationTraces.reduce(
+      (acc, trackerlocationTrace) =>
         acc +
-        flagTrace.windowSize *
-          flagTrace.scoreModifier *
-          config.public.scoreModifiers.flagMinute,
+        trackerlocationTrace.windowSize *
+          trackerlocationTrace.scoreModifier *
+          config.public.scoreModifiers.trackerlocationMinute,
       0
     );
 
-    this.addStat("flagMinutes", {
-      description: durationString(flagMinutes),
-      raw: flagMinutes,
-      score: flagMinutesScore,
-      link: `/flags?baseId=${this.base.id}`,
+    this.addStat("trackerlocationMinutes", {
+      description: durationString(trackerlocationMinutes),
+      raw: trackerlocationMinutes,
+      score: trackerlocationMinutesScore,
+      link: `/trackerlocations?baseId=${this.base.id}`,
     });
 
-    // Calculate durations with and without flags.
-    if (flagTraces.length <= 0) {
-      this.addStat("longestTimeWithFlag", {
-        description: "Never had a flag",
+    // Calculate durations with and without trackerlocations.
+    if (trackerlocationTraces.length <= 0) {
+      this.addStat("longestTimeWithTrackerLocation", {
+        description: "Never had a trackerlocation",
         raw: 0,
         score: 0,
-        link: `/flags?baseId=${this.base.id}`,
+        link: `/trackerlocations?baseId=${this.base.id}`,
       });
-      this.addStat("longestTimeWithoutFlag", {
-        description: "Never had a flag",
+      this.addStat("longestTimeWithoutTrackerLocation", {
+        description: "Never had a trackerlocation",
         raw: 0,
         score: 0,
-        link: `/flags?baseId=${this.base.id}`,
+        link: `/trackerlocations?baseId=${this.base.id}`,
       });
       return;
     }
-    let prevFlagTime = DateTime.fromJSDate(
-      flagTraces[flagTraces.length - 1].datetime
+    let prevTrackerLocationTime = DateTime.fromJSDate(
+      trackerlocationTraces[trackerlocationTraces.length - 1].datetime
     );
-    let flagCaptureStart = DateTime.fromJSDate(
-      flagTraces[flagTraces.length - 1].datetime
+    let trackerlocationCaptureStart = DateTime.fromJSDate(
+      trackerlocationTraces[trackerlocationTraces.length - 1].datetime
     );
-    let longestTimeWithFlag = 0;
-    let longestTimeWithoutFlag = 0;
+    let longestTimeWithTrackerLocation = 0;
+    let longestTimeWithoutTrackerLocation = 0;
 
-    for (const trace of flagTraces) {
+    for (const trace of trackerlocationTraces) {
       const traceDateTime = DateTime.fromJSDate(trace.datetime);
 
-      const minutesSincePrevFlag = prevFlagTime.diff(
+      const minutesSincePrevTrackerLocation = prevTrackerLocationTime.diff(
         traceDateTime,
         "minutes"
       ).minutes;
 
-      if (trace.windowSize < minutesSincePrevFlag) {
+      if (trace.windowSize < minutesSincePrevTrackerLocation) {
         // More than the interval window is transpired.
-        // The base did not have a flag between the previous time and this flag.
-        longestTimeWithoutFlag = Math.max(
-          longestTimeWithoutFlag,
-          minutesSincePrevFlag
+        // The base did not have a trackerlocation between the previous time and this trackerlocation.
+        longestTimeWithoutTrackerLocation = Math.max(
+          longestTimeWithoutTrackerLocation,
+          minutesSincePrevTrackerLocation
         );
-        flagCaptureStart = traceDateTime;
-        prevFlagTime = traceDateTime;
+        trackerlocationCaptureStart = traceDateTime;
+        prevTrackerLocationTime = traceDateTime;
       } else {
-        // Still within the interval window since previous flag.
-        // The base did have a flag between the previous time and this flag.
+        // Still within the interval window since previous trackerlocation.
+        // The base did have a trackerlocation between the previous time and this trackerlocation.
 
-        const minutesSinceCaptureStart = flagCaptureStart.diff(
+        const minutesSinceCaptureStart = trackerlocationCaptureStart.diff(
           traceDateTime,
           "minutes"
         ).minutes;
 
-        longestTimeWithFlag = Math.max(
-          longestTimeWithFlag,
+        longestTimeWithTrackerLocation = Math.max(
+          longestTimeWithTrackerLocation,
           minutesSinceCaptureStart
         );
-        prevFlagTime = traceDateTime;
+        prevTrackerLocationTime = traceDateTime;
       }
     }
 
-    this.addStat("longestTimeWithFlag", {
-      description: durationString(longestTimeWithFlag),
-      raw: longestTimeWithFlag,
+    this.addStat("longestTimeWithTrackerLocation", {
+      description: durationString(longestTimeWithTrackerLocation),
+      raw: longestTimeWithTrackerLocation,
       score: 0,
-      link: `/flags?baseId=${this.base.id}`,
+      link: `/trackerlocations?baseId=${this.base.id}`,
     });
-    this.addStat("longestTimeWithoutFlag", {
-      description: durationString(longestTimeWithoutFlag),
-      raw: longestTimeWithoutFlag,
+    this.addStat("longestTimeWithoutTrackerLocation", {
+      description: durationString(longestTimeWithoutTrackerLocation),
+      raw: longestTimeWithoutTrackerLocation,
       score: 0,
-      link: `/flags?baseId=${this.base.id}`,
+      link: `/trackerlocations?baseId=${this.base.id}`,
     });
   }
 
-  async calculateFlagVisibilityViolations(): Promise<void> {
+  async calculateTrackerLocationVisibilityViolations(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate flag visibility violations.
-    const flagVisibilityViolations = await this.prisma.action.aggregate({
-      // _sum: { score: true },
-      _count: { action: true },
-      where: {
-        baseId: this.base.id,
-        action: "violationFlag",
-      },
-    });
+    // Calculate trackerlocation visibility violations.
+    const trackerlocationVisibilityViolations =
+      await this.prisma.action.aggregate({
+        // _sum: { score: true },
+        _count: { action: true },
+        where: {
+          baseId: this.base.id,
+          action: "violationTrackerLocation",
+        },
+      });
 
-    this.addStat("flagVisibilityViolations", {
-      description: "times the flag got hidden",
-      raw: flagVisibilityViolations._count.action,
+    this.addStat("trackerlocationVisibilityViolations", {
+      description: "times the trackerlocation got hidden",
+      raw: trackerlocationVisibilityViolations._count.action,
       score:
-        flagVisibilityViolations._count.action *
-        config.public.scoreModifiers.flagVisibilityViolation,
-      link: `/actions?baseId=${this.base.id}&action=violationFlag`,
+        trackerlocationVisibilityViolations._count.action *
+        config.public.scoreModifiers.trackerlocationVisibilityViolation,
+      link: `/actions?baseId=${this.base.id}&action=violationTrackerLocation`,
     });
   }
 
-  async calculateConcurrentFlags(): Promise<void> {
+  async calculateConcurrentTrackerLocations(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate concurrent flags.
-    const concurrentFlagTraces = await this.prisma.flag.groupBy({
-      by: "datetime",
-      _count: { datetime: true },
-      where: {
-        baseId: this.base.id,
-        distance: {
-          lte: config.public.flagCapturedDistance,
+    // Calculate concurrent trackerlocations.
+    const concurrentTrackerLocationTraces =
+      await this.prisma.trackerlocation.groupBy({
+        by: "datetime",
+        _count: { datetime: true },
+        where: {
+          baseId: this.base.id,
+          distance: {
+            lte: config.public.trackerlocationCapturedDistance,
+          },
         },
-      },
-      orderBy: {
-        _count: {
-          datetime: "desc",
+        orderBy: {
+          _count: {
+            datetime: "desc",
+          },
         },
-      },
-      take: 1,
-    });
+        take: 1,
+      });
 
-    if (concurrentFlagTraces.length !== 1) {
-      this.addStat("maxConcurrentFlags", {
-        description: `No Flags Captured`,
+    if (concurrentTrackerLocationTraces.length !== 1) {
+      this.addStat("maxConcurrentTrackerLocations", {
+        description: `No TrackerLocations Captured`,
         raw: 0,
         score: 0,
-        link: `/flags?baseId=${this.base.id}`,
+        link: `/trackerlocations?baseId=${this.base.id}`,
       });
       return;
     }
 
-    this.addStat("maxConcurrentFlags", {
-      description: `Occurred at ${concurrentFlagTraces[0].datetime}`,
-      raw: concurrentFlagTraces[0]._count.datetime,
+    this.addStat("maxConcurrentTrackerLocations", {
+      description: `Occurred at ${concurrentTrackerLocationTraces[0].datetime}`,
+      raw: concurrentTrackerLocationTraces[0]._count.datetime,
       score: 0, // Only awards points if the base with the most.
-      link: `/flags?baseId=${this.base.id}`,
+      link: `/trackerlocations?baseId=${this.base.id}`,
     });
   }
 
   async calculateCapturedLifeTokens(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate flag visibility violations.
+    // Calculate trackerlocation visibility violations.
     const capturedLifeTokens = await this.prisma.action.aggregate({
       _count: { action: true },
       _sum: { score: true },
@@ -343,7 +345,7 @@ class BaseStatManager {
   async calculateMissingLifeTokens(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate flag visibility violations.
+    // Calculate trackerlocation visibility violations.
     const capturedLifeTokens = await this.prisma.action.aggregate({
       _count: { action: true },
       where: {
@@ -365,7 +367,7 @@ class BaseStatManager {
   async calculateRespawns(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate flag visibility violations.
+    // Calculate trackerlocation visibility violations.
     const respawns = await this.prisma.action.aggregate({
       _count: { action: true },
       _sum: { score: true },
@@ -433,7 +435,7 @@ class BaseStatManager {
   async calculateOtherActions(): Promise<void> {
     const config = useRuntimeConfig();
 
-    // Calculate flag visibility violations.
+    // Calculate trackerlocation visibility violations.
     const otherActions = await this.prisma.action.aggregate({
       _count: { action: true },
       _sum: { score: true },

@@ -1,5 +1,5 @@
 import { ActionData } from "./action";
-import { FlagData } from "./flag";
+import { TrackerLocationData } from "./trackerlocation";
 import { LogData } from "./log";
 import { BaseData } from "./base";
 import { TrackerData } from "./tracker";
@@ -8,7 +8,7 @@ export const SocketServerRoomToken = "socket-server-room-token";
 
 export type MessageData =
   | MessageDataAction
-  | MessageDataFlag
+  | MessageDataTrackerLocation
   | MessageDataBase
   | MessageDataTracker
   | MessageDataLog
@@ -26,16 +26,16 @@ export type MessageDataAction =
       actionId: number;
     };
 
-export type MessageDataFlag =
+export type MessageDataTrackerLocation =
   | {
-      type: "flag";
+      type: "trackerlocation";
       action: "create" | "update";
-      flag: FlagData;
+      trackerlocation: TrackerLocationData;
     }
   | {
-      type: "flag";
+      type: "trackerlocation";
       action: "delete";
-      flagId: number;
+      trackerlocationId: number;
     };
 
 export type MessageDataBase =

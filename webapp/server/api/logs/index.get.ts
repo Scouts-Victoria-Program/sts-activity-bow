@@ -40,7 +40,7 @@ export default defineEventHandler(
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.flagCapturedDistance }
+            ? { lte: config.public.trackerlocationCapturedDistance }
             : undefined,
         },
       });
@@ -50,7 +50,7 @@ export default defineEventHandler(
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.flagCapturedDistance }
+            ? { lte: config.public.trackerlocationCapturedDistance }
             : undefined,
         },
       });

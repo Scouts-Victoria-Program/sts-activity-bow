@@ -2,7 +2,9 @@
 import type { Breadcrumb } from "~/types/breadcrumbs";
 useHead({
   titleTemplate: (titleChunk) => {
-    return titleChunk ? `${titleChunk} - Capture the Flag` : "Capture the Flag";
+    return titleChunk
+      ? `${titleChunk} - Capture the TrackerLocation`
+      : "Capture the TrackerLocation";
   },
 });
 const route = useRoute();
@@ -26,7 +28,9 @@ const breadcrumbs = computed<Breadcrumb[]>(
           <li><NuxtLink :to="`/map`">Map</NuxtLink></li>
           <li><NuxtLink :to="`/bases`">Bases</NuxtLink></li>
           <li><NuxtLink :to="`/trackers`">Trackers</NuxtLink></li>
-          <li><NuxtLink :to="`/flags`">Flags</NuxtLink></li>
+          <li>
+            <NuxtLink :to="`/trackerlocations`">TrackerLocations</NuxtLink>
+          </li>
           <li><NuxtLink :to="`/logs`">Logs</NuxtLink></li>
           <li><NuxtLink :to="`/actions`">Actions</NuxtLink></li>
           <li><NuxtLink :to="`/stats`">Stats</NuxtLink></li>

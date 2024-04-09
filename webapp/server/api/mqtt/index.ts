@@ -20,7 +20,7 @@ interface ClosestBase {
   distance: number;
 }
 
-interface FlagToInsert {
+interface TrackerLocationToInsert {
   datetime: Date;
   windowSize: number;
   scoreModifier: number;
@@ -32,7 +32,7 @@ interface FlagToInsert {
 }
 
 import { useSocketServer } from "~/server/utils/websocket";
-import { FlagData } from "~/server/types/flag";
+import { TrackerLocationData } from "~/server/types/trackerlocation";
 const { sendMessage } = useSocketServer();
 
 const config = useRuntimeConfig();
@@ -80,7 +80,7 @@ async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
   });
 
   // Calculate current tracker zone/base base.
-  const closestBase = await getClosestBaseFlagZoneByLatLong(
+  const closestBase = await getClosestBaseTrackerLocationZoneByLatLong(
     uplinkMessage.lat,
     uplinkMessage.long
   );
@@ -92,12 +92,12 @@ async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
   // Log data point.
   await insertLog({ uplinkMessage, trackerData, closestBase });
 
-  const flagWindows = await generateFlagWindows({
+  const trackerlocationWindows = await generateTrackerLocationWindows({
     uplinkMessage,
     trackerData,
     closestBase,
   });
-  await insertFlags(flagWindows);
+  await insertTrackerLocations(trackerlocationWindows);
 }
 
 async function insertLog(context: {
@@ -133,63 +133,75 @@ async function insertLog(context: {
   });
 }
 
-async function generateFlagWindows(context: {
+async function generateTrackerLocationWindows(context: {
   uplinkMessage: ParsedUplinkMessage;
   trackerData: { id: number; scoreModifier: number };
   closestBase: ClosestBase;
-}): Promise<FlagToInsert[]> {
+}): Promise<TrackerLocationToInsert[]> {
   const config = useRuntimeConfig();
-  const interval = config.public.flagWindowIntervalMinutes;
+  const interval = config.public.trackerlocationWindowIntervalMinutes;
 
-  const flags: FlagToInsert[] = [];
+  const trackerlocations: TrackerLocationToInsert[] = [];
 
-  const previousFlag = await prisma.flag.findFirst({
+  const previousTrackerLocation = await prisma.trackerlocation.findFirst({
     where: { trackerId: context.trackerData.id },
     orderBy: { datetime: "desc" },
     take: 1,
   });
 
-  if (!previousFlag) {
-    // insert current log as first flag.
-    flags.push(buildFlag(interval, DateTime.now(), context));
+  if (!previousTrackerLocation) {
+    // insert current log as first trackerlocation.
+    trackerlocations.push(
+      buildTrackerLocation(interval, DateTime.now(), context)
+    );
 
-    return flags;
+    return trackerlocations;
   }
 
   const windowedNow = windowDateTime(interval, DateTime.now());
 
-  const previousDatetime = DateTime.fromJSDate(previousFlag.datetime);
+  const previousDatetime = DateTime.fromJSDate(
+    previousTrackerLocation.datetime
+  );
 
   let windowedDatetime = windowDateTime(interval, previousDatetime).plus({
-    minutes: config.public.flagWindowIntervalMinutes,
+    minutes: config.public.trackerlocationWindowIntervalMinutes,
   });
 
   // Check if current time window is newer than the "keep alive time" ago.
   // If it is older, then we dont want to fill in all the gaps and just want
   // a new "first" trace recorded.
-  const flagKeepAliveMinutesAgo = config.public.flagKeepAliveMinutes * -1.05;
-  if (flagKeepAliveMinutesAgo < minutesDiff(windowedDatetime, windowedNow)) {
+  const trackerlocationKeepAliveMinutesAgo =
+    config.public.trackerlocationKeepAliveMinutes * -1.05;
+  if (
+    trackerlocationKeepAliveMinutesAgo <
+    minutesDiff(windowedDatetime, windowedNow)
+  ) {
     // If the difference in minutes is negative, the trace is in the past and does not
-    // clash with the current bucket time, then create a flag object for that window.
+    // clash with the current bucket time, then create a trackerlocation object for that window.
     while (minutesDiff(windowedDatetime, windowedNow) < 0) {
-      flags.push(buildFlag(interval, windowedDatetime, { previousFlag }));
+      trackerlocations.push(
+        buildTrackerLocation(interval, windowedDatetime, {
+          previousTrackerLocation,
+        })
+      );
 
       windowedDatetime = windowedDatetime.plus({
-        minutes: config.public.flagWindowIntervalMinutes,
+        minutes: config.public.trackerlocationWindowIntervalMinutes,
       });
     }
   }
 
-  flags.push(buildFlag(interval, windowedNow, context));
+  trackerlocations.push(buildTrackerLocation(interval, windowedNow, context));
 
-  return flags;
+  return trackerlocations;
 }
 
 function minutesDiff(candidateWindow: DateTime, nowWindow: DateTime): number {
   return candidateWindow.diff(nowWindow, "minutes").minutes;
 }
 
-function buildFlag(
+function buildTrackerLocation(
   interval: number,
   datetime: DateTime,
   context:
@@ -198,18 +210,18 @@ function buildFlag(
         trackerData: { id: number; scoreModifier: number };
         closestBase: ClosestBase;
       }
-    | { previousFlag: FlagToInsert }
-): FlagToInsert {
-  if ("previousFlag" in context) {
+    | { previousTrackerLocation: TrackerLocationToInsert }
+): TrackerLocationToInsert {
+  if ("previousTrackerLocation" in context) {
     return {
       datetime: windowDateTime(interval, datetime).toJSDate(),
-      windowSize: context.previousFlag.windowSize,
-      scoreModifier: context.previousFlag.scoreModifier,
-      lat: context.previousFlag.lat,
-      long: context.previousFlag.long,
-      trackerId: context.previousFlag.trackerId,
-      baseId: context.previousFlag.baseId,
-      distance: context.previousFlag.distance,
+      windowSize: context.previousTrackerLocation.windowSize,
+      scoreModifier: context.previousTrackerLocation.scoreModifier,
+      lat: context.previousTrackerLocation.lat,
+      long: context.previousTrackerLocation.long,
+      trackerId: context.previousTrackerLocation.trackerId,
+      baseId: context.previousTrackerLocation.baseId,
+      distance: context.previousTrackerLocation.distance,
     };
   }
 
@@ -235,28 +247,30 @@ function windowDateTime(interval: number, datetime: DateTime): DateTime {
   });
 }
 
-async function insertFlags(flagsToInsert: FlagToInsert[]) {
-  for (const flagToInsert of flagsToInsert) {
-    const flag = await prisma.flag.create({
-      data: flagToInsert,
+async function insertTrackerLocations(
+  trackerlocationsToInsert: TrackerLocationToInsert[]
+) {
+  for (const trackerlocationToInsert of trackerlocationsToInsert) {
+    const trackerlocation = await prisma.trackerlocation.create({
+      data: trackerlocationToInsert,
     });
 
     // Send update via websocket.
-    const flagData: FlagData = {
-      id: flag.id,
-      datetime: flag.datetime.toISOString(),
-      scoreModifier: flag.scoreModifier,
-      windowSize: flag.windowSize,
-      lat: flag.lat,
-      long: flag.long,
-      trackerId: flag.trackerId,
-      baseId: flag.baseId,
-      distance: flag.distance,
+    const trackerlocationData: TrackerLocationData = {
+      id: trackerlocation.id,
+      datetime: trackerlocation.datetime.toISOString(),
+      scoreModifier: trackerlocation.scoreModifier,
+      windowSize: trackerlocation.windowSize,
+      lat: trackerlocation.lat,
+      long: trackerlocation.long,
+      trackerId: trackerlocation.trackerId,
+      baseId: trackerlocation.baseId,
+      distance: trackerlocation.distance,
     };
-    sendMessage("flag", {
-      type: "flag",
+    sendMessage("trackerlocation", {
+      type: "trackerlocation",
       action: "create",
-      flag: flagData,
+      trackerlocation: trackerlocationData,
     });
   }
 }
@@ -286,7 +300,7 @@ function parseUpLinkMessage(
   };
 }
 
-async function getClosestBaseFlagZoneByLatLong(
+async function getClosestBaseTrackerLocationZoneByLatLong(
   lat: number,
   long: number
 ): Promise<ClosestBase> {
@@ -296,7 +310,7 @@ async function getClosestBaseFlagZoneByLatLong(
 
     const res4 = (await prisma.$queryRaw`SELECT 
       id, earth_distance(
-        ll_to_earth(t."flagZoneLat", t."flagZoneLong"),
+        ll_to_earth(t."trackerlocationZoneLat", t."trackerlocationZoneLong"),
         ll_to_earth(${lat}, ${long})
       ) as distance
      FROM "Base" as t

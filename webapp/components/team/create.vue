@@ -11,8 +11,8 @@ const newBase = ref<BaseCreateInput>({ name: "" });
 async function submitCreate() {
   const reqBody: BaseCreateInput = {
     name: newBase.value.name,
-    flagZoneLat: newBase.value.flagZoneLat,
-    flagZoneLong: newBase.value.flagZoneLong,
+    trackerlocationZoneLat: newBase.value.trackerlocationZoneLat,
+    trackerlocationZoneLong: newBase.value.trackerlocationZoneLong,
   };
   const baseId = await create(reqBody);
 
@@ -35,7 +35,7 @@ async function submitCreate() {
         <input
           type="number"
           id="form-base-create-lat"
-          v-model="newBase.flagZoneLat"
+          v-model="newBase.trackerlocationZoneLat"
         />
       </div>
       <div class="form-row">
@@ -43,7 +43,7 @@ async function submitCreate() {
         <input
           type="number"
           id="form-base-create-long"
-          v-model="newBase.flagZoneLong"
+          v-model="newBase.trackerlocationZoneLong"
         />
       </div>
       <div v-if="error">{{ errorMessage }}</div>

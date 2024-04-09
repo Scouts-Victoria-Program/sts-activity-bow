@@ -37,7 +37,7 @@ function baseCreated(newId: number) {
           <th>name</th>
           <th>lat</th>
           <th>long</th>
-          <th>flags</th>
+          <th>trackerlocations</th>
           <th>logs</th>
           <th>actions</th>
         </tr>
@@ -46,10 +46,12 @@ function baseCreated(newId: number) {
         <tr v-for="base in displayBases" :key="base.id">
           <td>{{ base.id }}</td>
           <td>{{ base.name }}</td>
-          <td>{{ base.flagZoneLat }}</td>
-          <td>{{ base.flagZoneLong }}</td>
+          <td>{{ base.trackerlocationZoneLat }}</td>
+          <td>{{ base.trackerlocationZoneLong }}</td>
           <td>
-            <NuxtLink :to="`/flags?baseId=${base.id}`">view flags</NuxtLink>
+            <NuxtLink :to="`/trackerlocations?baseId=${base.id}`"
+              >view trackerlocations</NuxtLink
+            >
           </td>
           <td>
             <NuxtLink :to="`/logs?baseId=${base.id}`">view logs</NuxtLink>

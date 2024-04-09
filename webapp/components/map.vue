@@ -19,12 +19,12 @@ const {
   errorMessage: trackerErrorMessage,
 } = useListAllTrackers();
 
-const { useListAllFlags, flags } = useFlag();
+const { useListAllTrackerLocations, trackerlocations } = useTrackerLocation();
 const {
-  pending: flagPending,
-  error: flagError,
-  errorMessage: flagErrorMessage,
-} = useListAllFlags();
+  pending: trackerlocationPending,
+  error: trackerlocationError,
+  errorMessage: trackerlocationErrorMessage,
+} = useListAllTrackerLocations();
 
 interface Path {
   lat: number;
@@ -53,11 +53,13 @@ function selectAllTrackers() {
 function deselectAllTrackers() {
   trackersToShow.value = [];
 }
-const flagShownWithinMinutes = ref<number>(60);
+const trackerlocationShownWithinMinutes = ref<number>(60);
 
 const filteredBases = computed(() => {
   return Object.values(bases.value)
-    .filter((base) => base.flagZoneLat && base.flagZoneLong)
+    .filter(
+      (base) => base.trackerlocationZoneLat && base.trackerlocationZoneLong
+    )
     .filter((base) => basesToShow.value.includes(base.id));
 });
 const filteredTrackers = computed(() => {
@@ -65,13 +67,13 @@ const filteredTrackers = computed(() => {
     trackersToShow.value.includes(tracker.id)
   );
 });
-const filterFlags = computed(() => {
-  return Object.values(flags.value)
-    .filter((flag) => flag.lat && flag.long)
+const filterTrackerLocations = computed(() => {
+  return Object.values(trackerlocations.value)
+    .filter((trackerlocation) => trackerlocation.lat && trackerlocation.long)
     .filter(
-      (flag) =>
-        DateTime.fromISO(flag.datetime).diffNow("minutes").negate().minutes <=
-        flagShownWithinMinutes.value
+      (trackerlocation) =>
+        DateTime.fromISO(trackerlocation.datetime).diffNow("minutes").negate()
+          .minutes <= trackerlocationShownWithinMinutes.value
     );
 });
 
@@ -81,10 +83,15 @@ const trackerTraces = computed((): TrackerTraces[] => {
   for (const tracker of filteredTrackers.value) {
     trackerTraces.push({
       tracker,
-      traces: filterFlags.value
-        .filter((flag) => flag.trackerId === tracker.id)
+      traces: filterTrackerLocations.value
+        .filter((trackerlocation) => trackerlocation.trackerId === tracker.id)
         .reverse()
-        .map((flag): Path => ({ lat: flag.lat, lng: flag.long })),
+        .map(
+          (trackerlocation): Path => ({
+            lat: trackerlocation.lat,
+            lng: trackerlocation.long,
+          })
+        ),
       colour: new ColorHash().hex(String(tracker.id)),
     });
   }
@@ -98,9 +105,9 @@ const openedMarkerBaseID = ref<number | null>(null);
 function openMarkerBase(id: number | null) {
   openedMarkerBaseID.value = id;
 }
-const openedMarkerFlagID = ref<number | null>(null);
-function openMarkerFlag(id: number | null) {
-  openedMarkerFlagID.value = id;
+const openedMarkerTrackerLocationID = ref<number | null>(null);
+function openMarkerTrackerLocation(id: number | null) {
+  openedMarkerTrackerLocationID.value = id;
 }
 
 watch(basePending, (pending) => pending === false && selectAllBases(), {
@@ -112,25 +119,29 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 </script>
 
 <template>
-  <div v-if="!basePending && !flagPending" class="container">
+  <div v-if="!basePending && !trackerlocationPending" class="container">
     <nav class="map-controls">
-      <div class="flag-show-minutes">
+      <div class="trackerlocation-show-minutes">
         <h3>Traces</h3>
         <input
-          v-model="flagShownWithinMinutes"
+          v-model="trackerlocationShownWithinMinutes"
           type="range"
           min="30"
           :max="12 * 60"
           step="5"
         />
-        <input v-model="flagShownWithinMinutes" type="number" step="5" />
+        <input
+          v-model="trackerlocationShownWithinMinutes"
+          type="number"
+          step="5"
+        />
         <span class="display-text">
           Showing the last<br />
           <span class="duration"
-            >{{ Math.floor(flagShownWithinMinutes / 60) }}h
-            {{ (flagShownWithinMinutes % 60).toFixed(0) }}m
+            >{{ Math.floor(trackerlocationShownWithinMinutes / 60) }}h
+            {{ (trackerlocationShownWithinMinutes % 60).toFixed(0) }}m
           </span>
-          <br />of flag traces
+          <br />of trackerlocation traces
         </span>
       </div>
       <div class="select-base">
@@ -186,18 +197,24 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
           }"
           map-type-id="terrain"
         >
-          <!-- Base Flag Zone Circles -->
+          <!-- Base TrackerLocation Zone Circles -->
           <GMapCircle
             :key="base.id"
             v-for="base in filteredBases"
             :radius="30"
-            :center="{ lat: base.flagZoneLat, lng: base.flagZoneLong }"
+            :center="{
+              lat: base.trackerlocationZoneLat,
+              lng: base.trackerlocationZoneLong,
+            }"
           />
-          <!-- Base Flag Zone Markers -->
+          <!-- Base TrackerLocation Zone Markers -->
           <GMapMarker
             v-for="base in filteredBases"
             :key="base.id"
-            :position="{ lat: base.flagZoneLat, lng: base.flagZoneLong }"
+            :position="{
+              lat: base.trackerlocationZoneLat,
+              lng: base.trackerlocationZoneLong,
+            }"
             :clickable="true"
             :icon="{ url: placeBlue, scaledSize: { width: 40, height: 40 } }"
             @click="openMarkerBase(base.id)"
@@ -219,7 +236,7 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
             </GMapInfoWindow>
           </GMapMarker>
 
-          <!-- Last Flag Positions -->
+          <!-- Last TrackerLocation Positions -->
 
           <template
             v-for="trackerTrace in trackerTraces"
@@ -235,12 +252,14 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
               :position="trackerTrace.traces[0]"
               :clickable="true"
               :icon="{ url: placeRed, scaledSize: { width: 40, height: 40 } }"
-              @click="openMarkerFlag(trackerTrace.tracker.id)"
+              @click="openMarkerTrackerLocation(trackerTrace.tracker.id)"
             >
               <GMapInfoWindow
                 :closeclick="true"
-                @closeclick="openMarkerFlag(null)"
-                :opened="openedMarkerFlagID === trackerTrace.tracker.id"
+                @closeclick="openMarkerTrackerLocation(null)"
+                :opened="
+                  openedMarkerTrackerLocationID === trackerTrace.tracker.id
+                "
               >
                 <div style="color: black !important">
                   {{ trackerTrace.tracker.name }}
@@ -279,7 +298,7 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 
 .select-base,
 .select-tracker,
-.flag-show-minutes {
+.trackerlocation-show-minutes {
   display: flex;
   flex-direction: column;
 }

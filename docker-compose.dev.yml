@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    networks:
+      - bow
+    volumes:
+      - ./configuration/postgresql/initdb:/docker-entrypoint-initdb.d
+      - postgresqldata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=root
+  app:
+    build: ./webapp
+    restart: unless-stopped
+    networks:
+      - bow
+    ports:
+      - 3000:3000
+    command: npm run dev
+    depends_on:
+      - postgres
+    develop:
+      watch:
+        - action: sync
+          path: ./webapp
+          target: ./home/node/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./webapp/package.json
+    environment:
+      - LORA_PROXY_TARGET=http://lora-app.darends.scouthack.com/
+
+volumes:
+  postgresqldata:
+
+networks:
+  bow:
+    driver: bridge

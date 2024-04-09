@@ -26,15 +26,15 @@ export default defineEventHandler(
       const base = await prisma.base.create({
         data: {
           name: body?.name,
-          trackerlocationZoneLat: body?.trackerlocationZoneLat,
-          trackerlocationZoneLong: body?.trackerlocationZoneLong,
+          lat: body?.lat,
+          long: body?.long,
         },
       });
       const baseData: BaseData = {
         id: base.id,
         name: base.name,
-        trackerlocationZoneLat: base.trackerlocationZoneLat,
-        trackerlocationZoneLong: base.trackerlocationZoneLong,
+        lat: base.lat,
+        long: base.long,
       };
 
       sendMessage("base", {

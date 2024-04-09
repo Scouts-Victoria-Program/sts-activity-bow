@@ -37,7 +37,7 @@ definePageMeta({
       <li>
         <NuxtLink :to="`/locations`">
           TrackerLocation list (in
-          {{ $config.public.trackerlocationWindowIntervalMinutes }} minute
+          {{ $config.public.trackerLocationWindowIntervalMinutes }} minute
           windows)
         </NuxtLink>
       </li>

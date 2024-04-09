@@ -8,7 +8,7 @@ interface ResponseSuccess {
   perPage: number;
   maxPages: number;
   maxItems: number;
-  trackerlocations: TrackerLocationData[];
+  trackerLocations: TrackerLocationData[];
 }
 interface ResponseFailure {
   success: false;
@@ -30,7 +30,7 @@ export default defineEventHandler(
       const page = Number(params.page) || 1;
       const perPage = 30;
 
-      const trackerlocations = await prisma.trackerlocation.findMany({
+      const trackerLocations = await prisma.trackerLocation.findMany({
         skip: perPage * (page - 1),
         take: perPage,
         orderBy: {
@@ -40,17 +40,17 @@ export default defineEventHandler(
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.trackerlocationCapturedDistance }
+            ? { lte: config.public.trackerLocationCapturedDistance }
             : undefined,
         },
       });
 
-      const trackerlocationsCount = await prisma.trackerlocation.count({
+      const trackerLocationsCount = await prisma.trackerLocation.count({
         where: {
           trackerId: params.trackerId ? Number(params.trackerId) : undefined,
           baseId: params.baseId ? Number(params.baseId) : undefined,
           distance: params.baseId
-            ? { lte: config.public.trackerlocationCapturedDistance }
+            ? { lte: config.public.trackerLocationCapturedDistance }
             : undefined,
         },
       });
@@ -59,21 +59,21 @@ export default defineEventHandler(
         success: true,
         page: page,
         perPage: perPage,
-        maxPages: Math.ceil(trackerlocationsCount / perPage),
-        maxItems: trackerlocationsCount,
-        trackerlocations: trackerlocations.map((trackerlocation) => {
-          const trackerlocationData: TrackerLocationData = {
-            id: trackerlocation.id,
-            datetime: trackerlocation.datetime.toISOString(),
-            windowSize: trackerlocation.windowSize,
-            scoreModifier: trackerlocation.scoreModifier,
-            lat: trackerlocation.lat,
-            long: trackerlocation.long,
-            trackerId: trackerlocation.trackerId,
-            baseId: trackerlocation.baseId,
-            distance: trackerlocation.distance,
+        maxPages: Math.ceil(trackerLocationsCount / perPage),
+        maxItems: trackerLocationsCount,
+        trackerLocations: trackerLocations.map((trackerLocation) => {
+          const trackerLocationData: TrackerLocationData = {
+            id: trackerLocation.id,
+            datetime: trackerLocation.datetime.toISOString(),
+            windowSize: trackerLocation.windowSize,
+            scoreModifier: trackerLocation.scoreModifier,
+            lat: trackerLocation.lat,
+            long: trackerLocation.long,
+            trackerId: trackerLocation.trackerId,
+            baseId: trackerLocation.baseId,
+            distance: trackerLocation.distance,
           };
-          return trackerlocationData;
+          return trackerLocationData;
         }),
       };
     } catch (e) {

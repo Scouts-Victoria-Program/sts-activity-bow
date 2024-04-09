@@ -13,13 +13,13 @@ export default defineNuxtConfig({
       password: process.env.MQTT_API_KEY,
     },
     public: {
-      trackerlocationCapturedDistance: 50,
-      trackerlocationWindowIntervalMinutes: 1,
-      trackerlocationKeepAliveMinutes: 160,
+      trackerLocationCapturedDistance: 50,
+      trackerLocationWindowIntervalMinutes: 1,
+      trackerLocationKeepAliveMinutes: 160,
       GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       scoreModifiers: {
-        trackerlocationMinute: 1,
-        trackerlocationVisibilityViolation: -60,
+        trackerLocationMinute: 1,
+        trackerLocationVisibilityViolation: -60,
         capturedLifeToken: 1,
         missingLifeToken: -30,
         gameOfChanceWin: 1,

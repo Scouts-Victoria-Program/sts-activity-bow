@@ -61,8 +61,8 @@ function baseDeleted(id: number) {
 
     <div>ID: {{ data.base.id }}</div>
     <div>Name: {{ data.base.name }}</div>
-    <div>Lat: {{ data.base.trackerlocationZoneLat }}</div>
-    <div>Long: {{ data.base.trackerlocationZoneLong }}</div>
+    <div>Lat: {{ data.base.lat }}</div>
+    <div>Long: {{ data.base.long }}</div>
 
     <ActionList :base="data.base"></ActionList>
     <TrackerLocationList :base="data.base"></TrackerLocationList>

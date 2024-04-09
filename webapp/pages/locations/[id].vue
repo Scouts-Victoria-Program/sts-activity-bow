@@ -31,7 +31,7 @@ const showTrackerLocationUpdate = useState(
   "showTrackerLocationUpdate",
   () => false
 );
-function trackerlocationUpdated(id: number) {
+function trackerLocationUpdated(id: number) {
   showTrackerLocationUpdate.value = false;
   refresh();
 }
@@ -40,7 +40,7 @@ const showTrackerLocationDelete = useState(
   "showTrackerLocationDelete",
   () => false
 );
-function trackerlocationDeleted(id: number) {
+function trackerLocationDeleted(id: number) {
   showTrackerLocationDelete.value = false;
   const router = useRouter();
   router.push(`/locations`);
@@ -49,7 +49,7 @@ function trackerlocationDeleted(id: number) {
 
 <template>
   <div v-if="data && data.success && !pending">
-    <h2>TrackerLocation: {{ data.trackerlocation.trackerId }}</h2>
+    <h2>TrackerLocation: {{ data.trackerLocation.trackerId }}</h2>
     <button
       type="button"
       @click="showTrackerLocationUpdate = !showTrackerLocationUpdate"
@@ -58,8 +58,8 @@ function trackerlocationDeleted(id: number) {
     </button>
     <TrackerLocationUpdate
       v-if="showTrackerLocationUpdate"
-      :trackerlocation="data.trackerlocation"
-      @updated="trackerlocationUpdated"
+      :trackerLocation="data.trackerLocation"
+      @updated="trackerLocationUpdated"
     ></TrackerLocationUpdate>
 
     <button
@@ -70,26 +70,26 @@ function trackerlocationDeleted(id: number) {
     </button>
     <TrackerLocationDelete
       v-if="showTrackerLocationDelete"
-      :trackerlocation="data.trackerlocation"
-      @deleted="trackerlocationDeleted"
+      :trackerLocation="data.trackerLocation"
+      @deleted="trackerLocationDeleted"
     ></TrackerLocationDelete>
 
-    <div>ID: {{ data.trackerlocation.id }}</div>
+    <div>ID: {{ data.trackerLocation.id }}</div>
     <div>
       Datetime:
       {{
-        DateTime.fromISO(data.trackerlocation.datetime).toLocaleString(
+        DateTime.fromISO(data.trackerLocation.datetime).toLocaleString(
           DateTime.DATETIME_SHORT
         )
       }}
     </div>
-    <div>WindowSize: {{ data.trackerlocation.windowSize }}</div>
-    <div>ScoreModifier: {{ data.trackerlocation.scoreModifier }}</div>
-    <div>Lat: {{ data.trackerlocation.lat }}</div>
-    <div>Long: {{ data.trackerlocation.long }}</div>
-    <div>TrackerId: {{ data.trackerlocation.trackerId }}</div>
-    <div>BaseId: {{ data.trackerlocation.baseId }}</div>
-    <div>Distance: {{ data.trackerlocation.distance }}</div>
+    <div>WindowSize: {{ data.trackerLocation.windowSize }}</div>
+    <div>ScoreModifier: {{ data.trackerLocation.scoreModifier }}</div>
+    <div>Lat: {{ data.trackerLocation.lat }}</div>
+    <div>Long: {{ data.trackerLocation.long }}</div>
+    <div>TrackerId: {{ data.trackerLocation.trackerId }}</div>
+    <div>BaseId: {{ data.trackerLocation.baseId }}</div>
+    <div>Distance: {{ data.trackerLocation.distance }}</div>
   </div>
   <div v-else>loading or error</div>
 </template>

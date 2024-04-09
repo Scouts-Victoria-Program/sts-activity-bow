@@ -6,7 +6,7 @@ const { sendMessage } = useSocketServer();
 
 interface ResponseSuccess {
   success: true;
-  trackerlocation: { id: number };
+  trackerLocation: { id: number };
 }
 interface ResponseFailure {
   success: false;
@@ -20,19 +20,19 @@ export default defineEventHandler(
     }
 
     try {
-      const trackerlocationId = Number(event.context.params.id);
+      const trackerLocationId = Number(event.context.params.id);
 
-      await prisma.trackerlocation.delete({
-        where: { id: trackerlocationId },
+      await prisma.trackerLocation.delete({
+        where: { id: trackerLocationId },
       });
 
-      sendMessage("trackerlocation", {
-        type: "trackerlocation",
+      sendMessage("trackerLocation", {
+        type: "trackerLocation",
         action: "delete",
-        trackerlocationId: trackerlocationId,
+        trackerLocationId: trackerLocationId,
       });
 
-      return { success: true, trackerlocation: { id: trackerlocationId } };
+      return { success: true, trackerLocation: { id: trackerLocationId } };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

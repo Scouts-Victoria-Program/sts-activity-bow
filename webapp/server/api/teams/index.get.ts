@@ -40,8 +40,8 @@ export default defineEventHandler(
           const baseData: BaseData = {
             id: base.id,
             name: base.name,
-            trackerlocationZoneLat: base.trackerlocationZoneLat,
-            trackerlocationZoneLong: base.trackerlocationZoneLong,
+            lat: base.lat,
+            long: base.long,
           };
           return baseData;
         }),

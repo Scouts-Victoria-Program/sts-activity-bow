@@ -4,7 +4,7 @@ import { TrackerLocationData } from "~/server/types/trackerLocation";
 
 interface ResponseSuccess {
   success: true;
-  trackerlocation: TrackerLocationData;
+  trackerLocation: TrackerLocationData;
 }
 interface ResponseFailure {
   success: false;
@@ -18,21 +18,21 @@ export default defineEventHandler(
     }
 
     try {
-      const trackerlocation = await prisma.trackerlocation.findUniqueOrThrow({
+      const trackerLocation = await prisma.trackerLocation.findUniqueOrThrow({
         where: { id: Number(event.context.params.id) },
       });
-      const trackerlocationData: TrackerLocationData = {
-        id: trackerlocation.id,
-        datetime: trackerlocation.datetime.toISOString(),
-        windowSize: trackerlocation.windowSize,
-        scoreModifier: trackerlocation.scoreModifier,
-        lat: trackerlocation.lat,
-        long: trackerlocation.long,
-        trackerId: trackerlocation.trackerId,
-        baseId: trackerlocation.baseId,
-        distance: trackerlocation.distance,
+      const trackerLocationData: TrackerLocationData = {
+        id: trackerLocation.id,
+        datetime: trackerLocation.datetime.toISOString(),
+        windowSize: trackerLocation.windowSize,
+        scoreModifier: trackerLocation.scoreModifier,
+        lat: trackerLocation.lat,
+        long: trackerLocation.long,
+        trackerId: trackerLocation.trackerId,
+        baseId: trackerLocation.baseId,
+        distance: trackerLocation.distance,
       };
-      return { success: true, trackerlocation: trackerlocationData };
+      return { success: true, trackerLocation: trackerLocationData };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // The .code property can be accessed in a type-safe manner

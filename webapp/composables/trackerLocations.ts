@@ -7,7 +7,7 @@ import { usePageControls } from "./pageControls";
 import { DateTime } from "luxon";
 
 interface FetchTrackerLocationComposable {
-  trackerlocation: ComputedRef<TrackerLocationData | null>;
+  trackerLocation: ComputedRef<TrackerLocationData | null>;
   loading: Ref<boolean>;
 }
 
@@ -20,51 +20,51 @@ const fetchTrackerLocationComposable: Record<
 > = {};
 
 export const useTrackerLocation = () => {
-  const trackerlocationsState = useState<Record<string, TrackerLocationData>>(
-    "trackerlocations",
+  const trackerLocationsState = useState<Record<string, TrackerLocationData>>(
+    "trackerLocations",
     () => ({})
   );
 
   return {
-    trackerlocations: trackerlocationsState,
+    trackerLocations: trackerLocationsState,
     getTrackerLocation(id: number): ComputedRef<TrackerLocationData | null> {
-      return computed(() => trackerlocationsState.value[String(id)] ?? null);
+      return computed(() => trackerLocationsState.value[String(id)] ?? null);
     },
-    setTrackerLocation(trackerlocation: TrackerLocationData): void {
-      trackerlocationsState.value[String(trackerlocation.id)] = trackerlocation;
+    setTrackerLocation(trackerLocation: TrackerLocationData): void {
+      trackerLocationsState.value[String(trackerLocation.id)] = trackerLocation;
     },
-    setTrackerLocations(trackerlocations: TrackerLocationData[]): void {
-      trackerlocations.forEach(
-        (trackerlocation) =>
-          (trackerlocationsState.value[String(trackerlocation.id)] =
-            trackerlocation)
+    setTrackerLocations(trackerLocations: TrackerLocationData[]): void {
+      trackerLocations.forEach(
+        (trackerLocation) =>
+          (trackerLocationsState.value[String(trackerLocation.id)] =
+            trackerLocation)
       );
     },
-    removeTrackerLocation(trackerlocationId: number): void {
-      delete trackerlocationsState.value[String(trackerlocationId)];
+    removeTrackerLocation(trackerLocationId: number): void {
+      delete trackerLocationsState.value[String(trackerLocationId)];
     },
     useFetchTrackerLocation: (
-      trackerlocationId: number | null
+      trackerLocationId: number | null
     ): FetchTrackerLocationComposable => {
-      if (trackerlocationId === null) {
+      if (trackerLocationId === null) {
         return {
-          trackerlocation: computed(() => null),
+          trackerLocation: computed(() => null),
           loading: ref(false),
         };
       }
 
-      if (fetchTrackerLocationComposable[trackerlocationId]) {
-        return fetchTrackerLocationComposable[trackerlocationId];
+      if (fetchTrackerLocationComposable[trackerLocationId]) {
+        return fetchTrackerLocationComposable[trackerLocationId];
       }
 
       const { data, pending } = useFetch(
-        `/api/locations/${trackerlocationId}`,
+        `/api/locations/${trackerLocationId}`,
         {}
       );
 
-      fetchTrackerLocationComposable[trackerlocationId] = {
-        trackerlocation:
-          useTrackerLocation().getTrackerLocation(trackerlocationId),
+      fetchTrackerLocationComposable[trackerLocationId] = {
+        trackerLocation:
+          useTrackerLocation().getTrackerLocation(trackerLocationId),
         loading: pending,
       };
 
@@ -72,10 +72,10 @@ export const useTrackerLocation = () => {
         if (!value?.success) {
           return;
         }
-        useTrackerLocation().setTrackerLocation(value.trackerlocation);
+        useTrackerLocation().setTrackerLocation(value.trackerLocation);
       });
 
-      return fetchTrackerLocationComposable[trackerlocationId];
+      return fetchTrackerLocationComposable[trackerLocationId];
     },
     useListTrackerLocations: (options: {
       where: {
@@ -103,7 +103,7 @@ export const useTrackerLocation = () => {
         if (!value?.success) {
           return;
         }
-        useTrackerLocation().setTrackerLocations(value.trackerlocations);
+        useTrackerLocation().setTrackerLocations(value.trackerLocations);
       });
 
       return {
@@ -112,14 +112,14 @@ export const useTrackerLocation = () => {
             return [];
           }
 
-          return data.value?.trackerlocations
+          return data.value?.trackerLocations
             .map(
-              ({ id: trackerlocationId }) =>
-                useTrackerLocation().getTrackerLocation(trackerlocationId).value
+              ({ id: trackerLocationId }) =>
+                useTrackerLocation().getTrackerLocation(trackerLocationId).value
             )
             .filter(
-              (trackerlocation): trackerlocation is TrackerLocationData =>
-                trackerlocation !== null
+              (trackerLocation): trackerLocation is TrackerLocationData =>
+                trackerLocation !== null
             );
         }),
         uiPageControls,
@@ -132,7 +132,7 @@ export const useTrackerLocation = () => {
           if (data.value?.success === false) {
             return data.value.message;
           }
-          return "Unable to fetch trackerlocation list";
+          return "Unable to fetch trackerLocation list";
         }),
       };
     },
@@ -153,27 +153,27 @@ export const useTrackerLocation = () => {
           return [];
         }
 
-        useTrackerLocation().setTrackerLocations(data.value.trackerlocations);
+        useTrackerLocation().setTrackerLocations(data.value.trackerLocations);
 
-        const trackerlocationIds = data.value.trackerlocations.map(
-          (trackerlocation) => trackerlocation.id
+        const trackerLocationIds = data.value.trackerLocations.map(
+          (trackerLocation) => trackerLocation.id
         );
 
         if (data.value.maxPages <= page) {
-          return trackerlocationIds; // TrackerLocation Ids from last page.
+          return trackerLocationIds; // TrackerLocation Ids from last page.
         }
 
         if (
           maxAge <
-          DateTime.fromISO(data.value.trackerlocations[0].datetime)
+          DateTime.fromISO(data.value.trackerLocations[0].datetime)
             .diffNow("minutes")
             .negate().minutes
         ) {
-          return trackerlocationIds; // Dont fetch further pages, they are too long ago.
+          return trackerLocationIds; // Dont fetch further pages, they are too long ago.
         }
 
         return [
-          ...trackerlocationIds, // TrackerLocation Ids from current page.
+          ...trackerLocationIds, // TrackerLocation Ids from current page.
           ...(await fetchTrackerLocationPage(page + 1)), // TrackerLocation Ids from future pages.
         ];
       }
@@ -181,19 +181,19 @@ export const useTrackerLocation = () => {
       const pending = ref<boolean>(true);
 
       fetchTrackerLocationPage()
-        .then((trackerlocationIdsFetched) => {
-          const { trackerlocations, removeTrackerLocation } =
+        .then((trackerLocationIdsFetched) => {
+          const { trackerLocations, removeTrackerLocation } =
             useTrackerLocation();
 
-          const trackerlocationsIdsNotFetched = Object.values(trackerlocations)
+          const trackerLocationsIdsNotFetched = Object.values(trackerLocations)
             .filter(
-              (trackerlocation) =>
-                !trackerlocationIdsFetched.includes(trackerlocation.id)
+              (trackerLocation) =>
+                !trackerLocationIdsFetched.includes(trackerLocation.id)
             )
-            .map((trackerlocation) => trackerlocation.id);
+            .map((trackerLocation) => trackerLocation.id);
 
-          trackerlocationsIdsNotFetched.forEach((trackerlocationId) =>
-            removeTrackerLocation(trackerlocationId)
+          trackerLocationsIdsNotFetched.forEach((trackerLocationId) =>
+            removeTrackerLocation(trackerLocationId)
           );
         })
         .catch(() => {
@@ -235,13 +235,13 @@ export const useTrackerLocation = () => {
             return null;
           }
 
-          useTrackerLocation().setTrackerLocation(data.trackerlocation);
+          useTrackerLocation().setTrackerLocation(data.trackerLocation);
 
           // Set `created` ref so create button can be disabled
           // forever once we've had a successful creation.
           created.value = true;
 
-          return data.trackerlocation.id;
+          return data.trackerLocation.id;
         },
         created,
         loading,
@@ -276,9 +276,9 @@ export const useTrackerLocation = () => {
             return null;
           }
 
-          useTrackerLocation().setTrackerLocation(data.trackerlocation);
+          useTrackerLocation().setTrackerLocation(data.trackerLocation);
 
-          return data.trackerlocation.id;
+          return data.trackerLocation.id;
         },
         loading,
         error,
@@ -312,13 +312,13 @@ export const useTrackerLocation = () => {
             return null;
           }
 
-          useTrackerLocation().removeTrackerLocation(data.trackerlocation.id);
+          useTrackerLocation().removeTrackerLocation(data.trackerLocation.id);
 
           // Set `deleted` ref so delete button can be disabled
           // forever once we've had a successful creation.
           deleted.value = true;
 
-          return data.trackerlocation.id;
+          return data.trackerLocation.id;
         },
         deleted,
         loading,

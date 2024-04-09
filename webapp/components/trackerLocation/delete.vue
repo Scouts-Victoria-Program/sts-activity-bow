@@ -8,14 +8,14 @@ const emit = defineEmits<{
   deleted: [id: number];
 }>();
 const props = defineProps<{
-  trackerlocation: TrackerLocationData;
+  trackerLocation: TrackerLocationData;
 }>();
 
 async function submitDelete() {
-  const trackerlocationId = await deleteFn(props.trackerlocation.id);
+  const trackerLocationId = await deleteFn(props.trackerLocation.id);
 
-  if (trackerlocationId) {
-    emit("deleted", trackerlocationId);
+  if (trackerLocationId) {
+    emit("deleted", trackerLocationId);
   }
 }
 </script>
@@ -26,8 +26,8 @@ async function submitDelete() {
       <legend>Delete TrackerLocation</legend>
 
       <div style="color: red">
-        Just checking that you are wanting to delete the trackerlocation:<br />
-        "{{ trackerlocation.datetime }}" [id={{ trackerlocation.id }}]
+        Just checking that you are wanting to delete the trackerLocation:<br />
+        "{{ trackerLocation.datetime }}" [id={{ trackerLocation.id }}]
       </div>
 
       <div v-if="error">{{ errorMessage }}</div>

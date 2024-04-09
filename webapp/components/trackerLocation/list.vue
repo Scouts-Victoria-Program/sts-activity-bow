@@ -36,7 +36,7 @@ const showTrackerLocationCreate = useState(
   "showTrackerLocationCreate",
   () => false
 );
-function trackerlocationCreated(newId: number) {
+function trackerLocationCreated(newId: number) {
   showTrackerLocationCreate.value = false;
   refresh();
 }
@@ -48,7 +48,7 @@ function trackerlocationCreated(newId: number) {
 
     <TrackerLocationCreate
       v-if="showTrackerLocationCreate"
-      @created="trackerlocationCreated"
+      @created="trackerLocationCreated"
       :tracker="props.tracker"
       :base="props.base"
     ></TrackerLocationCreate>
@@ -70,7 +70,7 @@ function trackerlocationCreated(newId: number) {
     </UiListControls>
 
     <div v-if="error">
-      Unable to load trackerlocation list {{ errorMessage }}
+      Unable to load trackerLocation list {{ errorMessage }}
     </div>
     <TableSkeleton v-else-if="loading" :rows="15" :columns="10"></TableSkeleton>
     <table v-else>
@@ -90,34 +90,34 @@ function trackerlocationCreated(newId: number) {
       </thead>
       <tbody>
         <tr
-          v-for="trackerlocation in displayTrackerLocations"
-          :key="trackerlocation.id"
+          v-for="trackerLocation in displayTrackerLocations"
+          :key="trackerLocation.id"
         >
-          <td>{{ trackerlocation.id }}</td>
+          <td>{{ trackerLocation.id }}</td>
           <td>
             {{
-              DateTime.fromISO(trackerlocation.datetime).toLocaleString(
+              DateTime.fromISO(trackerLocation.datetime).toLocaleString(
                 DateTime.DATETIME_SHORT
               )
             }}
           </td>
-          <td>{{ trackerlocation.windowSize }}</td>
-          <td>{{ trackerlocation.scoreModifier }}</td>
-          <td>{{ trackerlocation.lat }}</td>
-          <td>{{ trackerlocation.long }}</td>
+          <td>{{ trackerLocation.windowSize }}</td>
+          <td>{{ trackerLocation.scoreModifier }}</td>
+          <td>{{ trackerLocation.lat }}</td>
+          <td>{{ trackerLocation.long }}</td>
           <td>
-            <NuxtLink :to="`/trackers/${trackerlocation.trackerId}`">{{
-              trackerlocation.trackerId
+            <NuxtLink :to="`/trackers/${trackerLocation.trackerId}`">{{
+              trackerLocation.trackerId
             }}</NuxtLink>
           </td>
           <td>
-            <NuxtLink :to="`/bases/${trackerlocation.baseId}`">{{
-              trackerlocation.baseId
+            <NuxtLink :to="`/bases/${trackerLocation.baseId}`">{{
+              trackerLocation.baseId
             }}</NuxtLink>
           </td>
-          <td>{{ trackerlocation.distance }}</td>
+          <td>{{ trackerLocation.distance }}</td>
           <td>
-            <NuxtLink :to="`/locations/${trackerlocation.id}`">show</NuxtLink>
+            <NuxtLink :to="`/locations/${trackerLocation.id}`">show</NuxtLink>
           </td>
         </tr>
       </tbody>

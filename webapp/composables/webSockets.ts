@@ -11,7 +11,7 @@ import { DateTime } from "luxon";
 let socket: ReturnType<typeof useSocket> | null = null;
 
 interface Entity {
-  type: "action" | "trackerlocation" | "log" | "base" | "tracker";
+  type: "action" | "trackerLocation" | "log" | "base" | "tracker";
   id: number;
 }
 export type WebSocketLog = {
@@ -58,7 +58,7 @@ export const useWebSockets = () => {
       // Listen for messages
       socket.on("status", handleStatus);
       socket.on("action", handleAction);
-      socket.on("trackerlocation", handleTrackerLocation);
+      socket.on("trackerLocation", handleTrackerLocation);
       socket.on("base", handleBase);
       socket.on("tracker", handleTracker);
       socket.on("log", handleLog);
@@ -127,26 +127,26 @@ function handleTrackerLocation(data: MessageDataTrackerLocation) {
 
   switch (data.action) {
     case "create":
-      setTrackerLocation(data.trackerlocation);
+      setTrackerLocation(data.trackerLocation);
 
       log({
-        entity: { type: "trackerlocation", id: data.trackerlocation.id },
-        related: buildRelated(data.trackerlocation),
+        entity: { type: "trackerLocation", id: data.trackerLocation.id },
+        related: buildRelated(data.trackerLocation),
         message: "created",
       });
       break;
     case "update":
-      setTrackerLocation(data.trackerlocation);
+      setTrackerLocation(data.trackerLocation);
       log({
-        entity: { type: "trackerlocation", id: data.trackerlocation.id },
-        related: buildRelated(data.trackerlocation),
+        entity: { type: "trackerLocation", id: data.trackerLocation.id },
+        related: buildRelated(data.trackerLocation),
         message: "updated",
       });
       break;
     case "delete":
-      removeTrackerLocation(data.trackerlocationId);
+      removeTrackerLocation(data.trackerLocationId);
       log({
-        entity: { type: "trackerlocation", id: data.trackerlocationId },
+        entity: { type: "trackerLocation", id: data.trackerLocationId },
         related: [],
         message: "deleted",
       });

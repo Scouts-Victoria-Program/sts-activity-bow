@@ -10,19 +10,19 @@ const emit = defineEmits<{
   updated: [id: number];
 }>();
 const props = defineProps<{
-  trackerlocation: TrackerLocationData;
+  trackerLocation: TrackerLocationData;
 }>();
 
 const newTrackerLocation = ref<TrackerLocationUpdateInput>({
-  id: props.trackerlocation.id,
-  datetime: props.trackerlocation.datetime,
-  windowSize: props.trackerlocation.windowSize,
-  scoreModifier: props.trackerlocation.scoreModifier,
-  lat: props.trackerlocation.lat,
-  long: props.trackerlocation.long,
-  trackerId: props.trackerlocation.trackerId,
-  baseId: props.trackerlocation.baseId,
-  distance: props.trackerlocation.distance,
+  id: props.trackerLocation.id,
+  datetime: props.trackerLocation.datetime,
+  windowSize: props.trackerLocation.windowSize,
+  scoreModifier: props.trackerLocation.scoreModifier,
+  lat: props.trackerLocation.lat,
+  long: props.trackerLocation.long,
+  trackerId: props.trackerLocation.trackerId,
+  baseId: props.trackerLocation.baseId,
+  distance: props.trackerLocation.distance,
 });
 
 async function submitUpdate() {
@@ -38,10 +38,10 @@ async function submitUpdate() {
     distance: newTrackerLocation.value.distance,
   };
 
-  const trackerlocationId = await update(reqBody);
+  const trackerLocationId = await update(reqBody);
 
-  if (trackerlocationId) {
-    emit("updated", trackerlocationId);
+  if (trackerLocationId) {
+    emit("updated", trackerLocationId);
   }
 }
 </script>
@@ -54,20 +54,20 @@ async function submitUpdate() {
         <p>ID: {{ newTrackerLocation.id }}</p>
       </div>
       <div class="form-row">
-        <label for="form-trackerlocation-update-window-size">windowSize</label>
+        <label for="form-trackerLocation-update-window-size">windowSize</label>
         <input
           type="number"
-          id="form-trackerlocation-update-window-size"
+          id="form-trackerLocation-update-window-size"
           v-model="newTrackerLocation.windowSize"
         />
       </div>
       <div class="form-row">
-        <label for="form-trackerlocation-update-score-modifier"
+        <label for="form-trackerLocation-update-score-modifier"
           >scoreModifier</label
         >
         <input
           type="number"
-          id="form-trackerlocation-update-score-modifier"
+          id="form-trackerLocation-update-score-modifier"
           v-model="newTrackerLocation.scoreModifier"
         />
       </div>

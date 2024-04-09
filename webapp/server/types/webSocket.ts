@@ -1,5 +1,5 @@
 import { ActionData } from "./action";
-import { TrackerLocationData } from "./trackerlocation";
+import { TrackerLocationData } from "./trackerLocation";
 import { LogData } from "./log";
 import { BaseData } from "./base";
 import { TrackerData } from "./tracker";
@@ -28,14 +28,14 @@ export type MessageDataAction =
 
 export type MessageDataTrackerLocation =
   | {
-      type: "trackerlocation";
+      type: "trackerLocation";
       action: "create" | "update";
-      trackerlocation: TrackerLocationData;
+      trackerLocation: TrackerLocationData;
     }
   | {
-      type: "trackerlocation";
+      type: "trackerLocation";
       action: "delete";
-      trackerlocationId: number;
+      trackerLocationId: number;
     };
 
 export type MessageDataBase =

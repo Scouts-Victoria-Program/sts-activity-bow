@@ -19,11 +19,11 @@ const {
   errorMessage: trackerErrorMessage,
 } = useListAllTrackers();
 
-const { useListAllTrackerLocations, trackerlocations } = useTrackerLocation();
+const { useListAllTrackerLocations, trackerLocations } = useTrackerLocation();
 const {
-  pending: trackerlocationPending,
-  error: trackerlocationError,
-  errorMessage: trackerlocationErrorMessage,
+  pending: trackerLocationPending,
+  error: trackerLocationError,
+  errorMessage: trackerLocationErrorMessage,
 } = useListAllTrackerLocations();
 
 interface Path {
@@ -53,13 +53,11 @@ function selectAllTrackers() {
 function deselectAllTrackers() {
   trackersToShow.value = [];
 }
-const trackerlocationShownWithinMinutes = ref<number>(60);
+const trackerLocationShownWithinMinutes = ref<number>(60);
 
 const filteredBases = computed(() => {
   return Object.values(bases.value)
-    .filter(
-      (base) => base.trackerlocationZoneLat && base.trackerlocationZoneLong
-    )
+    .filter((base) => base.lat && base.long)
     .filter((base) => basesToShow.value.includes(base.id));
 });
 const filteredTrackers = computed(() => {
@@ -68,12 +66,12 @@ const filteredTrackers = computed(() => {
   );
 });
 const filterTrackerLocations = computed(() => {
-  return Object.values(trackerlocations.value)
-    .filter((trackerlocation) => trackerlocation.lat && trackerlocation.long)
+  return Object.values(trackerLocations.value)
+    .filter((trackerLocation) => trackerLocation.lat && trackerLocation.long)
     .filter(
-      (trackerlocation) =>
-        DateTime.fromISO(trackerlocation.datetime).diffNow("minutes").negate()
-          .minutes <= trackerlocationShownWithinMinutes.value
+      (trackerLocation) =>
+        DateTime.fromISO(trackerLocation.datetime).diffNow("minutes").negate()
+          .minutes <= trackerLocationShownWithinMinutes.value
     );
 });
 
@@ -84,12 +82,12 @@ const trackerTraces = computed((): TrackerTraces[] => {
     trackerTraces.push({
       tracker,
       traces: filterTrackerLocations.value
-        .filter((trackerlocation) => trackerlocation.trackerId === tracker.id)
+        .filter((trackerLocation) => trackerLocation.trackerId === tracker.id)
         .reverse()
         .map(
-          (trackerlocation): Path => ({
-            lat: trackerlocation.lat,
-            lng: trackerlocation.long,
+          (trackerLocation): Path => ({
+            lat: trackerLocation.lat,
+            lng: trackerLocation.long,
           })
         ),
       colour: new ColorHash().hex(String(tracker.id)),
@@ -119,29 +117,29 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 </script>
 
 <template>
-  <div v-if="!basePending && !trackerlocationPending" class="container">
+  <div v-if="!basePending && !trackerLocationPending" class="container">
     <nav class="map-controls">
-      <div class="trackerlocation-show-minutes">
+      <div class="trackerLocation-show-minutes">
         <h3>Traces</h3>
         <input
-          v-model="trackerlocationShownWithinMinutes"
+          v-model="trackerLocationShownWithinMinutes"
           type="range"
           min="30"
           :max="12 * 60"
           step="5"
         />
         <input
-          v-model="trackerlocationShownWithinMinutes"
+          v-model="trackerLocationShownWithinMinutes"
           type="number"
           step="5"
         />
         <span class="display-text">
           Showing the last<br />
           <span class="duration"
-            >{{ Math.floor(trackerlocationShownWithinMinutes / 60) }}h
-            {{ (trackerlocationShownWithinMinutes % 60).toFixed(0) }}m
+            >{{ Math.floor(trackerLocationShownWithinMinutes / 60) }}h
+            {{ (trackerLocationShownWithinMinutes % 60).toFixed(0) }}m
           </span>
-          <br />of trackerlocation traces
+          <br />of trackerLocation traces
         </span>
       </div>
       <div class="select-base">
@@ -203,8 +201,8 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
             v-for="base in filteredBases"
             :radius="30"
             :center="{
-              lat: base.trackerlocationZoneLat,
-              lng: base.trackerlocationZoneLong,
+              lat: base.lat,
+              lng: base.long,
             }"
           />
           <!-- Base TrackerLocation Zone Markers -->
@@ -212,8 +210,8 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
             v-for="base in filteredBases"
             :key="base.id"
             :position="{
-              lat: base.trackerlocationZoneLat,
-              lng: base.trackerlocationZoneLong,
+              lat: base.lat,
+              lng: base.long,
             }"
             :clickable="true"
             :icon="{ url: placeBlue, scaledSize: { width: 40, height: 40 } }"
@@ -298,7 +296,7 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 
 .select-base,
 .select-tracker,
-.trackerlocation-show-minutes {
+.trackerLocation-show-minutes {
   display: flex;
   flex-direction: column;
 }

@@ -1,9 +1,9 @@
 export const StatSetType = {
-  trackerlocationMinutes: "TrackerLocation Minutes",
+  trackerLocationMinutes: "TrackerLocation Minutes",
   longestTimeWithTrackerLocation: "Longest Time With TrackerLocation",
   longestTimeWithoutTrackerLocation: "Longest Time Without TrackerLocation",
   maxConcurrentTrackerLocations: "Max Concurrent TrackerLocations",
-  trackerlocationVisibilityViolations: "TrackerLocation Visibility Violations",
+  trackerLocationVisibilityViolations: "TrackerLocation Visibility Violations",
   capturedLifeTokens: "Captured Life Tokens",
   missingLifeTokenViolations: "Missing Life Token Violations",
   respawns: "Respawns",

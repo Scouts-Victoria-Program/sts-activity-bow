@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { connect } from "mqtt";
 import prisma from "~/server/prisma";
-import { LogData } from "~/server/types/log";
 import {
   MqttTrackerMessage,
   MqttTrackerMessageJoin,
@@ -92,12 +91,12 @@ async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
   // Log data point.
   await insertLog({ uplinkMessage, trackerData, closestBase });
 
-  const trackerlocationWindows = await generateTrackerLocationWindows({
+  const trackerLocationWindows = await generateTrackerLocationWindows({
     uplinkMessage,
     trackerData,
     closestBase,
   });
-  await insertTrackerLocations(trackerlocationWindows);
+  await insertTrackerLocations(trackerLocationWindows);
 }
 
 async function insertLog(context: {
@@ -139,23 +138,23 @@ async function generateTrackerLocationWindows(context: {
   closestBase: ClosestBase;
 }): Promise<TrackerLocationToInsert[]> {
   const config = useRuntimeConfig();
-  const interval = config.public.trackerlocationWindowIntervalMinutes;
+  const interval = config.public.trackerLocationWindowIntervalMinutes;
 
-  const trackerlocations: TrackerLocationToInsert[] = [];
+  const trackerLocations: TrackerLocationToInsert[] = [];
 
-  const previousTrackerLocation = await prisma.trackerlocation.findFirst({
+  const previousTrackerLocation = await prisma.trackerLocation.findFirst({
     where: { trackerId: context.trackerData.id },
     orderBy: { datetime: "desc" },
     take: 1,
   });
 
   if (!previousTrackerLocation) {
-    // insert current log as first trackerlocation.
-    trackerlocations.push(
+    // insert current log as first trackerLocation.
+    trackerLocations.push(
       buildTrackerLocation(interval, DateTime.now(), context)
     );
 
-    return trackerlocations;
+    return trackerLocations;
   }
 
   const windowedNow = windowDateTime(interval, DateTime.now());
@@ -165,36 +164,36 @@ async function generateTrackerLocationWindows(context: {
   );
 
   let windowedDatetime = windowDateTime(interval, previousDatetime).plus({
-    minutes: config.public.trackerlocationWindowIntervalMinutes,
+    minutes: config.public.trackerLocationWindowIntervalMinutes,
   });
 
   // Check if current time window is newer than the "keep alive time" ago.
   // If it is older, then we dont want to fill in all the gaps and just want
   // a new "first" trace recorded.
-  const trackerlocationKeepAliveMinutesAgo =
-    config.public.trackerlocationKeepAliveMinutes * -1.05;
+  const trackerLocationKeepAliveMinutesAgo =
+    config.public.trackerLocationKeepAliveMinutes * -1.05;
   if (
-    trackerlocationKeepAliveMinutesAgo <
+    trackerLocationKeepAliveMinutesAgo <
     minutesDiff(windowedDatetime, windowedNow)
   ) {
     // If the difference in minutes is negative, the trace is in the past and does not
-    // clash with the current bucket time, then create a trackerlocation object for that window.
+    // clash with the current bucket time, then create a trackerLocation object for that window.
     while (minutesDiff(windowedDatetime, windowedNow) < 0) {
-      trackerlocations.push(
+      trackerLocations.push(
         buildTrackerLocation(interval, windowedDatetime, {
           previousTrackerLocation,
         })
       );
 
       windowedDatetime = windowedDatetime.plus({
-        minutes: config.public.trackerlocationWindowIntervalMinutes,
+        minutes: config.public.trackerLocationWindowIntervalMinutes,
       });
     }
   }
 
-  trackerlocations.push(buildTrackerLocation(interval, windowedNow, context));
+  trackerLocations.push(buildTrackerLocation(interval, windowedNow, context));
 
-  return trackerlocations;
+  return trackerLocations;
 }
 
 function minutesDiff(candidateWindow: DateTime, nowWindow: DateTime): number {
@@ -248,29 +247,29 @@ function windowDateTime(interval: number, datetime: DateTime): DateTime {
 }
 
 async function insertTrackerLocations(
-  trackerlocationsToInsert: TrackerLocationToInsert[]
+  trackerLocationsToInsert: TrackerLocationToInsert[]
 ) {
-  for (const trackerlocationToInsert of trackerlocationsToInsert) {
-    const trackerlocation = await prisma.trackerlocation.create({
-      data: trackerlocationToInsert,
+  for (const trackerLocationToInsert of trackerLocationsToInsert) {
+    const trackerLocation = await prisma.trackerLocation.create({
+      data: trackerLocationToInsert,
     });
 
     // Send update via websocket.
-    const trackerlocationData: TrackerLocationData = {
-      id: trackerlocation.id,
-      datetime: trackerlocation.datetime.toISOString(),
-      scoreModifier: trackerlocation.scoreModifier,
-      windowSize: trackerlocation.windowSize,
-      lat: trackerlocation.lat,
-      long: trackerlocation.long,
-      trackerId: trackerlocation.trackerId,
-      baseId: trackerlocation.baseId,
-      distance: trackerlocation.distance,
+    const trackerLocationData: TrackerLocationData = {
+      id: trackerLocation.id,
+      datetime: trackerLocation.datetime.toISOString(),
+      scoreModifier: trackerLocation.scoreModifier,
+      windowSize: trackerLocation.windowSize,
+      lat: trackerLocation.lat,
+      long: trackerLocation.long,
+      trackerId: trackerLocation.trackerId,
+      baseId: trackerLocation.baseId,
+      distance: trackerLocation.distance,
     };
-    sendMessage("trackerlocation", {
-      type: "trackerlocation",
+    sendMessage("trackerLocation", {
+      type: "trackerLocation",
       action: "create",
-      trackerlocation: trackerlocationData,
+      trackerLocation: trackerLocationData,
     });
   }
 }
@@ -310,7 +309,7 @@ async function getClosestBaseTrackerLocationZoneByLatLong(
 
     const res4 = (await prisma.$queryRaw`SELECT 
       id, earth_distance(
-        ll_to_earth(t."trackerlocationZoneLat", t."trackerlocationZoneLong"),
+        ll_to_earth(t."lat", t."long"),
         ll_to_earth(${lat}, ${long})
       ) as distance
      FROM "Base" as t

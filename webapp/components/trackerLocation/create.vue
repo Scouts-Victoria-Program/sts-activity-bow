@@ -37,10 +37,10 @@ async function submitCreate() {
     baseId: newTrackerLocation.value.baseId,
     distance: newTrackerLocation.value.distance,
   };
-  const trackerlocationId = await create(reqBody);
+  const trackerLocationId = await create(reqBody);
 
-  if (trackerlocationId) {
-    emit("created", trackerlocationId);
+  if (trackerLocationId) {
+    emit("created", trackerLocationId);
   }
 }
 </script>
@@ -50,20 +50,20 @@ async function submitCreate() {
     <fieldset>
       <legend>Create TrackerLocation</legend>
       <div class="form-row">
-        <label for="form-trackerlocation-update-window-size">windowSize</label>
+        <label for="form-trackerLocation-update-window-size">windowSize</label>
         <input
           type="number"
-          id="form-trackerlocation-update-window-size"
+          id="form-trackerLocation-update-window-size"
           v-model="newTrackerLocation.windowSize"
         />
       </div>
       <div class="form-row">
-        <label for="form-trackerlocation-update-score-modifier"
+        <label for="form-trackerLocation-update-score-modifier"
           >scoreModifier</label
         >
         <input
           type="number"
-          id="form-trackerlocation-update-score-modifier"
+          id="form-trackerLocation-update-score-modifier"
           v-model="newTrackerLocation.scoreModifier"
         />
       </div>

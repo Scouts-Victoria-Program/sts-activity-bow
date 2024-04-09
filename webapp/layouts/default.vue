@@ -2,9 +2,7 @@
 import type { Breadcrumb } from "~/types/breadcrumbs";
 useHead({
   titleTemplate: (titleChunk) => {
-    return titleChunk
-      ? `${titleChunk} - Capture the TrackerLocation`
-      : "Capture the TrackerLocation";
+    return titleChunk ? `${titleChunk} - LoRa Trackers` : "LoRa Trackers";
   },
 });
 const route = useRoute();
@@ -29,9 +27,8 @@ const breadcrumbs = computed<Breadcrumb[]>(
           <li><NuxtLink :to="`/bases`">Bases</NuxtLink></li>
           <li><NuxtLink :to="`/trackers`">Trackers</NuxtLink></li>
           <li>
-            <NuxtLink :to="`/trackerlocations`">TrackerLocations</NuxtLink>
+            <NuxtLink :to="`/locations`">Locations</NuxtLink>
           </li>
-          <li><NuxtLink :to="`/logs`">Logs</NuxtLink></li>
           <li><NuxtLink :to="`/actions`">Actions</NuxtLink></li>
           <li><NuxtLink :to="`/stats`">Stats</NuxtLink></li>
         </ul>

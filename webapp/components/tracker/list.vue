@@ -56,7 +56,7 @@ function trackerCreated(newId: number) {
           <td>{{ tracker.name }}</td>
           <td>x{{ tracker.scoreModifier }}</td>
           <td>
-            <NuxtLink :to="`/trackerlocations?trackerId=${tracker.id}`">
+            <NuxtLink :to="`/locations?trackerId=${tracker.id}`">
               view trackerlocations
             </NuxtLink>
           </td>

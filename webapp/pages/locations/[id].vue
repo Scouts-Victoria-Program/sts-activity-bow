@@ -9,7 +9,7 @@ useHead({
 definePageMeta({
   breadcrumbs: useBreadcrumbs([
     { to: `/`, label: `Home` },
-    { to: `/trackerlocations`, label: `TrackerLocations` },
+    { to: `/locations`, label: `TrackerLocations` },
     { to: ``, label: `TrackerLocation` },
   ]),
 
@@ -24,7 +24,7 @@ definePageMeta({
 });
 const route = useRoute();
 const { data, refresh, pending } = useFetch(
-  `/api/trackerlocations/${route.params.id}`
+  `/api/locations/${route.params.id}`
 );
 
 const showTrackerLocationUpdate = useState(
@@ -43,7 +43,7 @@ const showTrackerLocationDelete = useState(
 function trackerlocationDeleted(id: number) {
   showTrackerLocationDelete.value = false;
   const router = useRouter();
-  router.push(`/trackerlocations`);
+  router.push(`/locations`);
 }
 </script>
 

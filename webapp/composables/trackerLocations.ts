@@ -58,7 +58,7 @@ export const useTrackerLocation = () => {
       }
 
       const { data, pending } = useFetch(
-        `/api/trackerlocations/${trackerlocationId}`,
+        `/api/locations/${trackerlocationId}`,
         {}
       );
 
@@ -85,7 +85,7 @@ export const useTrackerLocation = () => {
     }) => {
       const { currentPage, useUiPageControls } = usePageControls();
 
-      const { data, refresh, pending } = useFetch(`/api/trackerlocations`, {
+      const { data, refresh, pending } = useFetch(`/api/locations`, {
         params: {
           page: currentPage,
           baseId: options.where.baseId,
@@ -143,7 +143,7 @@ export const useTrackerLocation = () => {
       async function fetchTrackerLocationPage(
         page: number = 1
       ): Promise<number[]> {
-        const { data } = await useFetch(`/api/trackerlocations`, {
+        const { data } = await useFetch(`/api/locations`, {
           params: { page: page },
         });
 
@@ -223,7 +223,7 @@ export const useTrackerLocation = () => {
           loading.value = true;
           error.value = false;
           errorMessage.value = undefined;
-          const data = await $fetch(`/api/trackerlocations`, {
+          const data = await $fetch(`/api/locations`, {
             method: "post",
             body: newTrackerLocation,
           });
@@ -262,7 +262,7 @@ export const useTrackerLocation = () => {
           error.value = false;
           errorMessage.value = undefined;
           const data = await $fetch(
-            `/api/trackerlocations/${updatedTrackerLocation.id}`,
+            `/api/locations/${updatedTrackerLocation.id}`,
             {
               method: "put",
               body: updatedTrackerLocation,
@@ -299,7 +299,7 @@ export const useTrackerLocation = () => {
           error.value = false;
           errorMessage.value = undefined;
           const data = await $fetch(
-            `/api/trackerlocations/${deleteTrackerLocationId}`,
+            `/api/locations/${deleteTrackerLocationId}`,
             {
               method: "delete",
             }

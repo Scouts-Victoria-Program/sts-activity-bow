@@ -179,7 +179,7 @@ class BaseStatManager {
       description: durationString(trackerlocationMinutes),
       raw: trackerlocationMinutes,
       score: trackerlocationMinutesScore,
-      link: `/trackerlocations?baseId=${this.base.id}`,
+      link: `/locations?baseId=${this.base.id}`,
     });
 
     // Calculate durations with and without trackerlocations.
@@ -188,13 +188,13 @@ class BaseStatManager {
         description: "Never had a trackerlocation",
         raw: 0,
         score: 0,
-        link: `/trackerlocations?baseId=${this.base.id}`,
+        link: `/locations?baseId=${this.base.id}`,
       });
       this.addStat("longestTimeWithoutTrackerLocation", {
         description: "Never had a trackerlocation",
         raw: 0,
         score: 0,
-        link: `/trackerlocations?baseId=${this.base.id}`,
+        link: `/locations?baseId=${this.base.id}`,
       });
       return;
     }
@@ -245,13 +245,13 @@ class BaseStatManager {
       description: durationString(longestTimeWithTrackerLocation),
       raw: longestTimeWithTrackerLocation,
       score: 0,
-      link: `/trackerlocations?baseId=${this.base.id}`,
+      link: `/locations?baseId=${this.base.id}`,
     });
     this.addStat("longestTimeWithoutTrackerLocation", {
       description: durationString(longestTimeWithoutTrackerLocation),
       raw: longestTimeWithoutTrackerLocation,
       score: 0,
-      link: `/trackerlocations?baseId=${this.base.id}`,
+      link: `/locations?baseId=${this.base.id}`,
     });
   }
 
@@ -306,7 +306,7 @@ class BaseStatManager {
         description: `No TrackerLocations Captured`,
         raw: 0,
         score: 0,
-        link: `/trackerlocations?baseId=${this.base.id}`,
+        link: `/locations?baseId=${this.base.id}`,
       });
       return;
     }
@@ -315,7 +315,7 @@ class BaseStatManager {
       description: `Occurred at ${concurrentTrackerLocationTraces[0].datetime}`,
       raw: concurrentTrackerLocationTraces[0]._count.datetime,
       score: 0, // Only awards points if the base with the most.
-      link: `/trackerlocations?baseId=${this.base.id}`,
+      link: `/locations?baseId=${this.base.id}`,
     });
   }
 

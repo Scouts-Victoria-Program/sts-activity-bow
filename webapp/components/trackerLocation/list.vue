@@ -117,9 +117,7 @@ function trackerlocationCreated(newId: number) {
           </td>
           <td>{{ trackerlocation.distance }}</td>
           <td>
-            <NuxtLink :to="`/trackerlocations/${trackerlocation.id}`"
-              >show</NuxtLink
-            >
+            <NuxtLink :to="`/locations/${trackerlocation.id}`">show</NuxtLink>
           </td>
         </tr>
       </tbody>

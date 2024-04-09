@@ -49,7 +49,7 @@ function baseCreated(newId: number) {
           <td>{{ base.trackerlocationZoneLat }}</td>
           <td>{{ base.trackerlocationZoneLong }}</td>
           <td>
-            <NuxtLink :to="`/trackerlocations?baseId=${base.id}`"
+            <NuxtLink :to="`/locations?baseId=${base.id}`"
               >view trackerlocations</NuxtLink
             >
           </td>

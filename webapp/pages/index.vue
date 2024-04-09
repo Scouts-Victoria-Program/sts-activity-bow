@@ -13,8 +13,8 @@ definePageMeta({
 <template>
   <div>
     <div class="hero">
-      <p>Moonee Valley District Scouts presents</p>
-      <h2>Capture the TrackerLocation: A game of stealth of tactics</h2>
+      <p>Scouts Victoria Stem: Star Trek Survival</p>
+      <h2>LoRa Trackers</h2>
     </div>
 
     <h3>View the Game Map:</h3>
@@ -35,13 +35,12 @@ definePageMeta({
     <h3>Browse the raw log data:</h3>
     <ul>
       <li>
-        <NuxtLink :to="`/trackerlocations`">
+        <NuxtLink :to="`/locations`">
           TrackerLocation list (in
           {{ $config.public.trackerlocationWindowIntervalMinutes }} minute
           windows)
         </NuxtLink>
       </li>
-      <li><NuxtLink :to="`/logs`">Log list</NuxtLink></li>
     </ul>
   </div>
 </template>

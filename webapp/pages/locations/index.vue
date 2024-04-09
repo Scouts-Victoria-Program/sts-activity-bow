@@ -8,7 +8,7 @@ useHead({
 definePageMeta({
   breadcrumbs: useBreadcrumbs([
     { to: `/`, label: `Home` },
-    { to: `/trackerlocations`, label: `TrackerLocations` },
+    { to: `/locations`, label: `TrackerLocations` },
   ]),
 });
 </script>

@@ -26,6 +26,7 @@ services:
           target: ./home/node/app
           ignore:
             - node_modules/
+            - .nuxt/
         - action: rebuild
           path: ./webapp/package.json
     environment:

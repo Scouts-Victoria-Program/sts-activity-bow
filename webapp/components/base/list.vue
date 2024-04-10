@@ -37,7 +37,7 @@ function baseCreated(newId: number) {
           <th>name</th>
           <th>lat</th>
           <th>long</th>
-          <th>trackerLocations</th>
+          <th>locations</th>
           <th>logs</th>
           <th>actions</th>
         </tr>
@@ -50,7 +50,7 @@ function baseCreated(newId: number) {
           <td>{{ base.long }}</td>
           <td>
             <NuxtLink :to="`/locations?baseId=${base.id}`"
-              >view trackerLocations</NuxtLink
+              >view locations</NuxtLink
             >
           </td>
           <td>

@@ -1,17 +1,17 @@
 import { Prisma } from "@prisma/client";
-import { connect } from "mqtt";
-import prisma from "~/server/prisma";
-import {
-  MqttTrackerMessage,
-  MqttTrackerMessageJoin,
-  MqttTrackerMessageUp,
-} from "~/server/types/mqtt";
 import { DateTime } from "luxon";
+import prisma from "~/server/prisma";
+import { TrackerLocationData } from "~/server/types/trackerLocation";
 
-interface ParsedUplinkMessage {
-  trackerId: string;
-  lat: number;
-  long: number;
+import { useSocketServer } from "~/server/utils/websocket";
+const { sendMessage } = useSocketServer();
+
+interface ResponseSuccess {
+  success: true;
+}
+interface ResponseFailure {
+  success: false;
+  message: string;
 }
 
 interface ClosestBase {
@@ -30,110 +30,103 @@ interface TrackerLocationToInsert {
   distance: number;
 }
 
-import { useSocketServer } from "~/server/utils/websocket";
-import { TrackerLocationData } from "~/server/types/trackerLocation";
-const { sendMessage } = useSocketServer();
+export type LoRaMessage = LoRaMessageJoin | LoRaMessageUp;
 
-const config = useRuntimeConfig();
+type LoRaMessageBase = {
+  deviceId: string;
+  datetime: string;
+  topic: string;
+};
 
-const client = connect(config.mqtt.host, {
-  username: config.mqtt.username,
-  password: config.mqtt.password,
-});
+type LoRaMessageJoin = LoRaMessageBase & {
+  type: "join";
+  success: boolean;
+};
 
-client.on("connect", () => {
-  client.subscribe(`v3/${config.mqtt.username}/devices/#`, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("Connected to MQTT");
+type LoRaMessageUp = LoRaMessageBase & {
+  type: "up";
+  latitude: number;
+  longitude: number;
+  battery: number;
+  alarmStatus: boolean;
+  ledEnabled: boolean;
+  movementDetection: "Disable" | "Move" | "Collide" | "User";
+  firmware: number;
+};
+
+export default defineEventHandler(
+  async (event): Promise<ResponseSuccess | ResponseFailure> => {
+    const body1 = await readBody<LoRaMessage>(event);
+    const body = JSON.parse(body1) as LoRaMessage;
+
+    if (body.type === "join") {
+      return { success: true };
     }
-  });
-});
 
-client.on("message", async (topic, message) => {
-  console.log(`MQTT message received:`, topic, message.toString());
+    try {
+      await handleLoRaMessageUp(body);
 
-  await handleTrackerMessage(
-    JSON.parse(message.toString()) as unknown as MqttTrackerMessage
-  );
-});
+      return { success: true };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        // The .code property can be accessed in a type-safe manner
+        if (e.code === "P2002") {
+          return {
+            success: false,
+            message: `A trackerLocation already exists with this name`,
+          };
+        }
+        if (e.code === "P2025") {
+          return {
+            success: false,
+            message: `Tracker with name ${body.deviceId} does not exist`,
+          };
+        }
+      }
 
-async function handleTrackerMessage(message: MqttTrackerMessage) {
-  if ("join_accept" in message) {
-    await handleTrackerMessageJoin(message);
+      if (e.message === "Missing Device Id") {
+        console.log(body);
+        return { success: false, message: `Missing Device Id` };
+      }
+
+      console.log(e);
+      return { success: false, message: `an unknown error occurred` };
+    }
   }
-  if ("uplink_message" in message) {
-    await handleTrackerMessageUp(message);
+);
+
+async function handleLoRaMessageUp(message: LoRaMessageUp) {
+  if (!message.deviceId) {
+    throw new Error("Missing Device Id");
   }
-}
-function handleTrackerMessageJoin(message: MqttTrackerMessageJoin) {}
-async function handleTrackerMessageUp(message: MqttTrackerMessageUp) {
-  const uplinkMessage = parseUpLinkMessage(message);
 
   // Get tracker from message.
   const trackerData = await prisma.tracker.findUniqueOrThrow({
     where: {
-      name: uplinkMessage.trackerId,
+      name: message.deviceId,
     },
   });
 
-  // Calculate current tracker zone/base base.
-  const closestBase = await getClosestBaseTrackerLocationZoneByLatLong(
-    uplinkMessage.lat,
-    uplinkMessage.long
+  // Calculate closest base to the tracker's location.
+  const closestBase = await getClosestBaseByLatLong(
+    message.latitude,
+    message.longitude
   );
 
   console.log(
     `GPS trace logged: tracker ${trackerData.name} base ${closestBase.id} distance ${closestBase.distance}`
   );
 
-  // Log data point.
-  await insertLog({ uplinkMessage, trackerData, closestBase });
-
   const trackerLocationWindows = await generateTrackerLocationWindows({
-    uplinkMessage,
+    message,
     trackerData,
     closestBase,
   });
   await insertTrackerLocations(trackerLocationWindows);
 }
 
-async function insertLog(context: {
-  uplinkMessage: ParsedUplinkMessage;
-  trackerData: { id: number };
-  closestBase: ClosestBase;
-}) {
-  const log = await prisma.trackerLog.create({
-    data: {
-      datetime: new Date(Date.now()),
-      lat: context.uplinkMessage.lat,
-      long: context.uplinkMessage.long,
-      baseId: context.closestBase.id,
-      trackerId: context.trackerData.id,
-      distance: context.closestBase.distance,
-    },
-  });
-
-  // Send update via websocket.
-  const logData: LogData = {
-    id: log.id,
-    datetime: log.datetime.toISOString(),
-    lat: log.lat,
-    long: log.long,
-    trackerId: log.trackerId,
-    baseId: log.baseId,
-    distance: log.distance,
-  };
-  sendMessage("log", {
-    type: "log",
-    action: "create",
-    log: logData,
-  });
-}
-
 async function generateTrackerLocationWindows(context: {
-  uplinkMessage: ParsedUplinkMessage;
+  message: LoRaMessageUp;
   trackerData: { id: number; scoreModifier: number };
   closestBase: ClosestBase;
 }): Promise<TrackerLocationToInsert[]> {
@@ -205,7 +198,7 @@ function buildTrackerLocation(
   datetime: DateTime,
   context:
     | {
-        uplinkMessage: ParsedUplinkMessage;
+        message: LoRaMessageUp;
         trackerData: { id: number; scoreModifier: number };
         closestBase: ClosestBase;
       }
@@ -228,8 +221,8 @@ function buildTrackerLocation(
     datetime: windowDateTime(interval, datetime).toJSDate(),
     windowSize: interval,
     scoreModifier: context.trackerData.scoreModifier,
-    lat: context.uplinkMessage.lat,
-    long: context.uplinkMessage.long,
+    lat: context.message.latitude,
+    long: context.message.longitude,
     trackerId: context.trackerData.id,
     baseId: context.closestBase.id,
     distance: context.closestBase.distance,
@@ -274,38 +267,13 @@ async function insertTrackerLocations(
   }
 }
 
-function parseUpLinkMessage(
-  message: MqttTrackerMessageUp
-): ParsedUplinkMessage {
-  const uplink = message.uplink_message.decoded_payload;
-
-  if (!uplink.latitude || !uplink.longitude) {
-    console.log(
-      `GPS trace missing lat or long ${
-        message.end_device_ids.device_id
-      } ${JSON.stringify(uplink)}`
-    );
-    throw new Error(
-      `GPS trace missing lat or long ${
-        message.end_device_ids.device_id
-      } ${JSON.stringify(uplink)}`
-    );
-  }
-
-  return {
-    trackerId: message.end_device_ids.device_id,
-    lat: uplink.latitude,
-    long: uplink.longitude,
-  };
-}
-
-async function getClosestBaseTrackerLocationZoneByLatLong(
+async function getClosestBaseByLatLong(
   lat: number,
   long: number
 ): Promise<ClosestBase> {
   try {
-    await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS cube;`;
-    await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS earthdistance;`;
+    // await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS cube;`;
+    // await prisma.$executeRaw`CREATE EXTENSION IF NOT EXISTS earthdistance;`;
 
     const res4 = (await prisma.$queryRaw`SELECT 
       id, earth_distance(
@@ -316,6 +284,10 @@ async function getClosestBaseTrackerLocationZoneByLatLong(
      ORDER BY distance ASC
      LIMIT 1
      `) as ClosestBase[];
+
+    if (res4.length !== 1) {
+      throw new Error("no closest base");
+    }
 
     return { id: res4[0].id, distance: res4[0].distance };
   } catch (e) {

@@ -9,7 +9,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "docker-start": "npx prisma migrate && npm run start"
+    "start-docker": "npx prisma migrate deploy && npm run start"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",

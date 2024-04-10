@@ -15,7 +15,7 @@ services:
     networks:
       - bow
     ports:
-      - 3000:3000
+      - 3333:3000
     command: npm run dev
     depends_on:
       - postgres

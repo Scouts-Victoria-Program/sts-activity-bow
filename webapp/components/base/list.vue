@@ -8,6 +8,12 @@ function baseCreated(newId: number) {
   showBaseCreate.value = false;
   refresh();
 }
+
+const showBaseBulkCreate = useState("showBaseBulkCreate", () => false);
+function baseBulkCreated() {
+  showBaseBulkCreate.value = false;
+  refresh();
+}
 </script>
 
 <template>
@@ -15,11 +21,19 @@ function baseCreated(newId: number) {
     <h2>Bases</h2>
 
     <BaseCreate v-if="showBaseCreate" @created="baseCreated"></BaseCreate>
+    <BaseBulkCreate
+      v-if="showBaseBulkCreate"
+      @created="baseBulkCreated"
+    ></BaseBulkCreate>
 
     <UiListControls>
       <div>
         <button type="button" @click="showBaseCreate = !showBaseCreate">
           {{ showBaseCreate ? "Hide" : "Show" }} Create Base
+        </button>
+
+        <button type="button" @click="showBaseBulkCreate = !showBaseBulkCreate">
+          {{ showBaseBulkCreate ? "Hide" : "Show" }} Create Bulk Bases
         </button>
       </div>
 

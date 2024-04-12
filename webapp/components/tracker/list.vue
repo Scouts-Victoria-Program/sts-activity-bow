@@ -14,6 +14,12 @@ function trackerCreated(newId: number) {
   showTrackerCreate.value = false;
   refresh();
 }
+
+const showTrackerBulkCreate = useState("showTrackerBulkCreate", () => false);
+function trackerBulkCreated() {
+  showTrackerBulkCreate.value = false;
+  refresh();
+}
 </script>
 
 <template>
@@ -24,11 +30,22 @@ function trackerCreated(newId: number) {
       v-if="showTrackerCreate"
       @created="trackerCreated"
     ></TrackerCreate>
+    <TrackerBulkCreate
+      v-if="showTrackerBulkCreate"
+      @created="trackerBulkCreated"
+    ></TrackerBulkCreate>
 
     <UiListControls>
       <div>
         <button type="button" @click="showTrackerCreate = !showTrackerCreate">
           {{ showTrackerCreate ? "Hide" : "Show" }} Create Tracker
+        </button>
+
+        <button
+          type="button"
+          @click="showTrackerBulkCreate = !showTrackerBulkCreate"
+        >
+          {{ showTrackerBulkCreate ? "Hide" : "Show" }} Create Bulk Trackers
         </button>
       </div>
 

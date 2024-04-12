@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import placeBlue from "@/assets/images/place_blue_24dp.svg";
 import placeRed from "@/assets/images/place_red_24dp.svg";
+import basicBowLocations from "@/assets/geojson/basic_bow_location.json";
 import ColorHash from "color-hash";
 import { DateTime } from "luxon";
 import type { TrackerData } from "~/server/types/tracker";
@@ -26,10 +27,7 @@ const {
   errorMessage: trackerLocationErrorMessage,
 } = useListAllTrackerLocations();
 
-interface Path {
-  lat: number;
-  lng: number;
-}
+type Path = [number, number];
 
 interface TrackerTraces {
   tracker: TrackerData;
@@ -84,12 +82,7 @@ const trackerTraces = computed((): TrackerTraces[] => {
       traces: filterTrackerLocations.value
         .filter((trackerLocation) => trackerLocation.trackerId === tracker.id)
         .reverse()
-        .map(
-          (trackerLocation): Path => ({
-            lat: trackerLocation.lat,
-            lng: trackerLocation.long,
-          })
-        ),
+        .map((trackerLocation): Path => locObj2Ary(trackerLocation)),
       colour: new ColorHash().hex(String(tracker.id)),
     });
   }
@@ -97,7 +90,13 @@ const trackerTraces = computed((): TrackerTraces[] => {
   return trackerTraces;
 });
 
-const initialCenter = { lat: -37.41012933716494, lng: 144.6960548304394 };
+function locObj2Ary(obj: { lat?: number; long?: number }): Path {
+  return [obj.long ?? 0, obj.lat ?? 0];
+}
+
+// const initialCenter = { lat: -37.41012933716494, lng: 144.6960548304394 }; // Rowallan
+// const initialCenter = { lat: -37.75014584927347, lng: 144.8562113164426 }; // Burley Griffin
+const initialCenter = { lat: -37.06511, lng: 145.50583 }; // Mafeking
 
 const openedMarkerBaseID = ref<number | null>(null);
 function openMarkerBase(id: number | null) {
@@ -114,6 +113,62 @@ watch(basePending, (pending) => pending === false && selectAllBases(), {
 watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
   immediate: true,
 });
+
+const center = ref([initialCenter.lng, initialCenter.lat]);
+const projection = ref("EPSG:4326");
+const zoom = ref(18);
+const rotation = ref(0);
+
+const currentCenter = ref(center.value);
+const currentZoom = ref(zoom.value);
+const currentRotation = ref(rotation.value);
+const currentResolution = ref(0);
+
+function resolutionChanged(event: {
+  target: { getResolution: () => number; getZoom: () => number };
+}) {
+  currentResolution.value = event.target.getResolution();
+  currentZoom.value = event.target.getZoom();
+}
+function centerChanged(event: {
+  target: { getCenter: () => [number, number] };
+}) {
+  currentCenter.value = event.target.getCenter();
+}
+function rotationChanged(event: { target: { getRotation: () => number } }) {
+  currentRotation.value = event.target.getRotation();
+}
+import { GeoJSON } from "ol/format";
+const geoJson = new GeoJSON();
+
+const basicBowLocationsParsed = geoJson.readFeatures(basicBowLocations);
+
+// const bottomLeftCorner = [145.50475409915896, -37.066784035724204];
+// const topRightCorner = [145.50972327120928, -37.06327326112887];
+
+const bottomLeftCorner = [145.499340200063, -37.06855325350198];
+
+const topRightCorner = [145.51561527978475, -37.06131314146699];
+
+const extent = ref([
+  bottomLeftCorner[0],
+  bottomLeftCorner[1],
+  topRightCorner[0],
+  topRightCorner[1],
+]);
+// const imageProjection = reactive({
+//   code: "xkcd-image",
+//   units: "pixels",
+//   extent: extent,
+// });
+const strokeWidth = ref(10);
+const stroke = ref("#ff0000");
+const fill = ref("#ffffff");
+// const imgUrl = ref("https://imgs.xkcd.com/comics/online_communities.png");
+const imgUrl = ref(
+  "https://cdna.artstation.com/p/assets/images/images/057/708/984/large/rutger-van-de-steeg-nebula-explosion-final.jpg?1672423037"
+);
+const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
 </script>
 
 <template>
@@ -182,96 +237,118 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 
     <div class="map-container">
       <ClientOnly>
-        <GMapMap
-          :center="initialCenter"
-          :zoom="17"
-          :options="{
-            zoomControl: true,
-            mapTypeControl: true,
-            scaleControl: true,
-            streetViewControl: false,
-            rotateControl: false,
-            fullscreenControl: true,
-          }"
-          map-type-id="terrain"
-        >
-          <!-- Base TrackerLocation Zone Circles -->
-          <GMapCircle
-            :key="base.id"
-            v-for="base in filteredBases"
-            :radius="30"
-            :center="{
-              lat: base.lat,
-              lng: base.long,
-            }"
+        <ol-map style="height: 70vh">
+          <ol-view
+            ref="view"
+            :center="center"
+            :rotation="rotation"
+            :zoom="zoom"
+            :projection="projection"
+            @change:center="centerChanged"
+            @change:resolution="resolutionChanged"
+            @change:rotation="rotationChanged"
           />
+
+          <ol-rotate-control></ol-rotate-control>
+          <ol-interaction-link />
+
+          <ol-tile-layer>
+            <ol-source-osm />
+          </ol-tile-layer>
+
+          <!-- <ol-image-layer>
+            <ol-source-image-static
+              :url="imgUrl"
+              :imageExtent="extent"
+            ></ol-source-image-static>
+          </ol-image-layer> -->
+
+          <ol-vector-layer>
+            <!-- Base TrackerLocation Zone Circles -->
+            <ol-feature :key="base.id" v-for="base in filteredBases">
+              <ol-geom-circle
+                :center="locObj2Ary(base)"
+                :radius="30"
+              ></ol-geom-circle>
+              <ol-style>
+                <ol-style-stroke color="red" :width="3"></ol-style-stroke>
+                <ol-style-fill color="rgba(255,200,0,0.2)"></ol-style-fill>
+              </ol-style>
+            </ol-feature>
+          </ol-vector-layer>
+
           <!-- Base TrackerLocation Zone Markers -->
-          <GMapMarker
-            v-for="base in filteredBases"
-            :key="base.id"
-            :position="{
-              lat: base.lat,
-              lng: base.long,
-            }"
-            :clickable="true"
-            :icon="{ url: placeBlue, scaledSize: { width: 40, height: 40 } }"
-            @click="openMarkerBase(base.id)"
-          >
-            <GMapInfoWindow
-              :closeclick="true"
-              @closeclick="openMarkerBase(null)"
-              :opened="openedMarkerBaseID === base.id"
-            >
-              <div style="color: black !important">
-                {{ base.name }}
-                <NuxtLink
-                  :to="`/bases/${base.id}`"
-                  style="color: black !important"
-                >
-                  Details
-                </NuxtLink>
-              </div>
-            </GMapInfoWindow>
-          </GMapMarker>
+          <ol-vector-layer>
+            <ol-source-vector>
+              <ol-feature v-for="base in filteredBases" :key="base.id">
+                <ol-geom-point :coordinates="locObj2Ary(base)"></ol-geom-point>
+                <ol-style>
+                  <ol-style-circle :radius="4">
+                    <ol-style-fill :color="fill"></ol-style-fill>
+                    <ol-style-stroke
+                      :color="stroke"
+                      :width="strokeWidth"
+                    ></ol-style-stroke>
+                    <!-- TODO Add marker pop up-->
+                  </ol-style-circle>
+                </ol-style>
+              </ol-feature>
+            </ol-source-vector>
+          </ol-vector-layer>
 
           <!-- Last TrackerLocation Positions -->
-
-          <template
-            v-for="trackerTrace in trackerTraces"
-            :key="trackerTrace.tracker.id"
-          >
-            <GMapPolyline
-              :path="trackerTrace.traces"
-              :options="{ strokeColor: trackerTrace.colour }"
-            ></GMapPolyline>
-
-            <GMapMarker
-              v-if="trackerTrace.traces.length >= 1"
-              :position="trackerTrace.traces[0]"
-              :clickable="true"
-              :icon="{ url: placeRed, scaledSize: { width: 40, height: 40 } }"
-              @click="openMarkerTrackerLocation(trackerTrace.tracker.id)"
-            >
-              <GMapInfoWindow
-                :closeclick="true"
-                @closeclick="openMarkerTrackerLocation(null)"
-                :opened="
-                  openedMarkerTrackerLocationID === trackerTrace.tracker.id
-                "
+          <ol-vector-layer>
+            <ol-source-vector>
+              <template
+                v-for="trackerTrace in trackerTraces"
+                :key="trackerTrace.tracker.id"
               >
-                <div style="color: black !important">
-                  {{ trackerTrace.tracker.name }}
-                  <NuxtLink
-                    :to="`/trackers/${trackerTrace.tracker.id}`"
-                    style="color: black !important"
-                  >
-                    Details
-                  </NuxtLink>
-                </div>
-              </GMapInfoWindow>
-            </GMapMarker>
-          </template>
-        </GMapMap>
+                <ol-feature>
+                  <ol-geom-line-string
+                    :coordinates="trackerTrace.traces"
+                  ></ol-geom-line-string>
+                  <ol-style>
+                    <ol-style-stroke
+                      :color="trackerTrace.colour"
+                      :width="2"
+                    ></ol-style-stroke>
+                  </ol-style>
+                </ol-feature>
+
+                <ol-feature v-if="trackerTrace.traces.length >= 1">
+                  <ol-geom-point
+                    :coordinates="trackerTrace.traces[0]"
+                  ></ol-geom-point>
+                  <ol-style>
+                    <ol-style-circle :radius="radius">
+                      <ol-style-fill :color="fill"></ol-style-fill>
+                      <ol-style-stroke
+                        :color="stroke"
+                        :width="strokeWidth"
+                      ></ol-style-stroke>
+                      <!-- TODO Add marker pop up-->
+                    </ol-style-circle>
+                  </ol-style>
+                </ol-feature>
+              </template>
+            </ol-source-vector>
+          </ol-vector-layer>
+
+          <!-- Placeholder info display -->
+          <ol-vector-image-layer>
+            <ol-source-vector
+              :features="basicBowLocationsParsed"
+              :format="geoJson"
+            ></ol-source-vector>
+          </ol-vector-image-layer>
+        </ol-map>
+
+        <ul>
+          <li>center : {{ currentCenter }}</li>
+          <li>resolution : {{ currentResolution }}</li>
+          <li>zoom : {{ currentZoom }}</li>
+          <li>rotation : {{ currentRotation }}</li>
+        </ul>
       </ClientOnly>
     </div>
   </div>
@@ -319,5 +396,30 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
 }
 h3 {
   border-bottom: solid 1px #555;
+}
+
+.ol-map {
+  position: relative;
+}
+.ol-map-loading:after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  margin-top: -40px;
+  margin-left: -40px;
+  border-radius: 50%;
+  border: 5px solid rgba(180, 180, 180, 0.6);
+  border-top-color: var(--vp-c-brand-1);
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

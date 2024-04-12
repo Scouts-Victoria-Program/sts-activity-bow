@@ -57,7 +57,9 @@ type LoRaMessageUp = LoRaMessageBase & {
 export default defineEventHandler(
   async (event): Promise<ResponseSuccess | ResponseFailure> => {
     const body1 = await readBody<LoRaMessage>(event);
-    const body = JSON.parse(body1) as LoRaMessage;
+
+    const body =
+      typeof body1 !== "string" ? body1 : (JSON.parse(body1) as LoRaMessage);
 
     if (body.type === "join") {
       return { success: true };
@@ -141,16 +143,24 @@ async function generateTrackerLocationWindows(context: {
     take: 1,
   });
 
+  const _parsedOrginDatetime = context.message.datetime
+    ? DateTime.fromISO(context.message.datetime)
+    : DateTime.now();
+
+  const datetimeMessageOrigin: DateTime = _parsedOrginDatetime.isValid
+    ? _parsedOrginDatetime
+    : DateTime.now();
+
   if (!previousTrackerLocation) {
     // insert current log as first trackerLocation.
     trackerLocations.push(
-      buildTrackerLocation(interval, DateTime.now(), context)
+      buildTrackerLocation(interval, datetimeMessageOrigin, context)
     );
 
     return trackerLocations;
   }
 
-  const windowedNow = windowDateTime(interval, DateTime.now());
+  const windowedNow = windowDateTime(interval, datetimeMessageOrigin);
 
   const previousDatetime = DateTime.fromJSDate(
     previousTrackerLocation.datetime

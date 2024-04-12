@@ -5,7 +5,6 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: true },
   modules: ["nuxt3-socket.io"],
-  build: { transpile: ["@fawmi/vue-google-maps"] },
   runtimeConfig: {
     mqtt: {
       host: "mqtt://au1.cloud.thethings.network:1883",
@@ -16,7 +15,6 @@ export default defineNuxtConfig({
       trackerLocationCapturedDistance: 50,
       trackerLocationWindowIntervalMinutes: 1,
       trackerLocationKeepAliveMinutes: 160,
-      GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
       scoreModifiers: {
         trackerLocationMinute: 1,
         trackerLocationVisibilityViolation: -60,
@@ -32,7 +30,7 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ["@fawmi/vue-google-maps", "fast-deep-equal"],
+      include: ["fast-deep-equal"],
     },
   },
 });

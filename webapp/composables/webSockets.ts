@@ -11,7 +11,7 @@ import { DateTime } from "luxon";
 let socket: ReturnType<typeof useSocket> | null = null;
 
 interface Entity {
-  type: "action" | "trackerLocation" | "log" | "base" | "tracker";
+  type: "action" | "location" | "log" | "base" | "tracker";
   id: number;
 }
 export type WebSocketLog = {
@@ -130,7 +130,7 @@ function handleTrackerLocation(data: MessageDataTrackerLocation) {
       setTrackerLocation(data.trackerLocation);
 
       log({
-        entity: { type: "trackerLocation", id: data.trackerLocation.id },
+        entity: { type: "location", id: data.trackerLocation.id },
         related: buildRelated(data.trackerLocation),
         message: "created",
       });
@@ -138,7 +138,7 @@ function handleTrackerLocation(data: MessageDataTrackerLocation) {
     case "update":
       setTrackerLocation(data.trackerLocation);
       log({
-        entity: { type: "trackerLocation", id: data.trackerLocation.id },
+        entity: { type: "location", id: data.trackerLocation.id },
         related: buildRelated(data.trackerLocation),
         message: "updated",
       });
@@ -146,7 +146,7 @@ function handleTrackerLocation(data: MessageDataTrackerLocation) {
     case "delete":
       removeTrackerLocation(data.trackerLocationId);
       log({
-        entity: { type: "trackerLocation", id: data.trackerLocationId },
+        entity: { type: "location", id: data.trackerLocationId },
         related: [],
         message: "deleted",
       });

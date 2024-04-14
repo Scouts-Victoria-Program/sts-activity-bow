@@ -5,6 +5,11 @@ import basicBowLocations from "@/assets/geojson/basic_bow_location.json";
 import ColorHash from "color-hash";
 import { DateTime } from "luxon";
 import type { TrackerData } from "~/server/types/tracker";
+import type { Item } from "ol-contextmenu";
+import { MapBrowserEvent, type View } from "ol";
+
+import { GeoJSON } from "ol/format";
+const geoJson = new GeoJSON();
 
 const { useListAllBases, bases } = useBase();
 const {
@@ -94,18 +99,18 @@ function locObj2Ary(obj: { lat?: number; long?: number }): Path {
   return [obj.long ?? 0, obj.lat ?? 0];
 }
 
-// const initialCenter = { lat: -37.41012933716494, lng: 144.6960548304394 }; // Rowallan
-// const initialCenter = { lat: -37.75014584927347, lng: 144.8562113164426 }; // Burley Griffin
-const initialCenter = { lat: -37.06511, lng: 145.50583 }; // Mafeking
+// const initialCenter = { lat: -37.41012933716494, long: 144.6960548304394 }; // Rowallan
+// const initialCenter = { lat: -37.75014584927347, long: 144.8562113164426 }; // Burley Griffin
+const initialCenter = { lat: -37.06511, long: 145.50583 }; // Mafeking
 
-const openedMarkerBaseID = ref<number | null>(null);
-function openMarkerBase(id: number | null) {
-  openedMarkerBaseID.value = id;
-}
-const openedMarkerTrackerLocationID = ref<number | null>(null);
-function openMarkerTrackerLocation(id: number | null) {
-  openedMarkerTrackerLocationID.value = id;
-}
+// const openedMarkerBaseID = ref<number | null>(null);
+// function openMarkerBase(id: number | null) {
+//   openedMarkerBaseID.value = id;
+// }
+// const openedMarkerTrackerLocationID = ref<number | null>(null);
+// function openMarkerTrackerLocation(id: number | null) {
+//   openedMarkerTrackerLocationID.value = id;
+// }
 
 watch(basePending, (pending) => pending === false && selectAllBases(), {
   immediate: true,
@@ -114,61 +119,95 @@ watch(trackerPending, (pending) => pending === false && selectAllTrackers(), {
   immediate: true,
 });
 
-const center = ref([initialCenter.lng, initialCenter.lat]);
+const center = ref(locObj2Ary(initialCenter));
 const projection = ref("EPSG:4326");
 const zoom = ref(18);
 const rotation = ref(0);
 
-const currentCenter = ref(center.value);
-const currentZoom = ref(zoom.value);
-const currentRotation = ref(rotation.value);
-const currentResolution = ref(0);
-
-function resolutionChanged(event: {
-  target: { getResolution: () => number; getZoom: () => number };
-}) {
-  currentResolution.value = event.target.getResolution();
-  currentZoom.value = event.target.getZoom();
-}
-function centerChanged(event: {
-  target: { getCenter: () => [number, number] };
-}) {
-  currentCenter.value = event.target.getCenter();
-}
-function rotationChanged(event: { target: { getRotation: () => number } }) {
-  currentRotation.value = event.target.getRotation();
-}
-import { GeoJSON } from "ol/format";
-const geoJson = new GeoJSON();
-
 const basicBowLocationsParsed = geoJson.readFeatures(basicBowLocations);
 
-// const bottomLeftCorner = [145.50475409915896, -37.066784035724204];
-// const topRightCorner = [145.50972327120928, -37.06327326112887];
+const bottomLeftCorner = { lat: -37.06855325350198, long: 145.499340200063 };
+const topRightCorner = { lat: -37.06131314146699, long: 145.51561527978475 };
 
-const bottomLeftCorner = [145.499340200063, -37.06855325350198];
-
-const topRightCorner = [145.51561527978475, -37.06131314146699];
-
-const extent = ref([
-  bottomLeftCorner[0],
-  bottomLeftCorner[1],
-  topRightCorner[0],
-  topRightCorner[1],
+const imageExtent = ref([
+  ...locObj2Ary(bottomLeftCorner),
+  ...locObj2Ary(topRightCorner),
 ]);
-// const imageProjection = reactive({
-//   code: "xkcd-image",
-//   units: "pixels",
-//   extent: extent,
-// });
-const strokeWidth = ref(10);
-const stroke = ref("#ff0000");
-const fill = ref("#ffffff");
-// const imgUrl = ref("https://imgs.xkcd.com/comics/online_communities.png");
-const imgUrl = ref(
+const imageUrl = ref(
   "https://cdna.artstation.com/p/assets/images/images/057/708/984/large/rutger-van-de-steeg-nebula-explosion-final.jpg?1672423037"
 );
-const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
+
+const contextMenuItems = ref<Item[]>([]);
+const view = ref<View | null>(null);
+
+import marker from "@/assets/images/place_blue_24dp.svg";
+import type { BaseCreateInput } from "~/server/types/base";
+import { pointerMove } from "ol/events/condition";
+import { Fill, Stroke, Style } from "ol/style";
+
+function inAndOut(x: number): number {
+  // console.log(x, x < 0.5 ? x * 2 : (1 - x) * 2, x < 0.5, x * 2, (1 - x) * 2);
+  if (x < 0.5) {
+    return x * 2;
+  } else {
+    return (1 - x) * 2;
+  }
+}
+
+contextMenuItems.value = [
+  {
+    text: "Center map here",
+    callback: (val) => {
+      view.value?.setCenter(val.coordinate);
+    },
+  },
+  {
+    text: "Add a Base",
+    icon: marker,
+    callback: async (val) => {
+      const { useCreateBase } = useBase();
+      const { create, created, loading, error, errorMessage } = useCreateBase();
+
+      const newName = prompt("Base Name:");
+      if (!newName) {
+        return;
+      }
+      const reqBody: BaseCreateInput = {
+        name: newName,
+        lat: val.coordinate[1],
+        long: val.coordinate[0],
+      };
+      const baseId = await create(reqBody);
+
+      if (error.value) {
+        alert(`Failed to create base ${errorMessage.value}`);
+      } else {
+        alert(`Base Created ${baseId}`);
+      }
+    },
+  },
+  "-", // this is a separator
+];
+
+const scaledMetres = 0.0005 / 100;
+
+const selectCondition = pointerMove;
+
+const featureSelected = (event: MapBrowserEvent<PointerEvent>) => {
+  // const pixel = event.pixel;
+  // event.map.forEachFeatureAtPixel(pixel, ()=>{
+
+  // });
+  console.log("featureSelectedEvent", event);
+};
+
+const selectInteactionFilter = (feature: any) => {
+  console.log("selectInteactionFilter", feature);
+  return true;
+  // return feature.values_.name != undefined;
+};
+
+const showLabels = ref(false);
 </script>
 
 <template>
@@ -196,6 +235,13 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
           </span>
           <br />of trackerLocation traces
         </span>
+      </div>
+      <div class="show-labels">
+        <h3>Labels</h3>
+        <div>
+          <input v-model="showLabels" id="show-labels" type="checkbox" />
+          <label for="show-labels"> Show Labels </label>
+        </div>
       </div>
       <div class="select-base">
         <h3>Bases</h3>
@@ -239,65 +285,67 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
       <ClientOnly>
         <ol-map style="height: 70vh">
           <ol-view
-            ref="view"
             :center="center"
             :rotation="rotation"
             :zoom="zoom"
             :projection="projection"
-            @change:center="centerChanged"
-            @change:resolution="resolutionChanged"
-            @change:rotation="rotationChanged"
           />
 
-          <ol-rotate-control></ol-rotate-control>
           <ol-interaction-link />
+          <ol-zoom-control zoomInLabel="➕" zoomOutLabel="➖" />
+          <ol-fullscreen-control />
+          <ol-scaleline-control />
+          <ol-context-menu-control :items="contextMenuItems" />
+          <ol-layerswitcher-control />
 
-          <ol-tile-layer>
+          <ol-tile-layer title="Open Street Map">
             <ol-source-osm />
           </ol-tile-layer>
 
-          <!-- <ol-image-layer>
+          <ol-image-layer title="Nebula Image">
             <ol-source-image-static
-              :url="imgUrl"
-              :imageExtent="extent"
+              :url="imageUrl"
+              :imageExtent="imageExtent"
             ></ol-source-image-static>
-          </ol-image-layer> -->
+          </ol-image-layer>
 
-          <ol-vector-layer>
-            <!-- Base TrackerLocation Zone Circles -->
-            <ol-feature :key="base.id" v-for="base in filteredBases">
-              <ol-geom-circle
-                :center="locObj2Ary(base)"
-                :radius="30"
-              ></ol-geom-circle>
-              <ol-style>
-                <ol-style-stroke color="red" :width="3"></ol-style-stroke>
-                <ol-style-fill color="rgba(255,200,0,0.2)"></ol-style-fill>
-              </ol-style>
-            </ol-feature>
-          </ol-vector-layer>
-
-          <!-- Base TrackerLocation Zone Markers -->
-          <ol-vector-layer>
+          <!-- Bases -->
+          <ol-vector-layer title="Bases">
+            <!-- Base Circles -->
             <ol-source-vector>
-              <ol-feature v-for="base in filteredBases" :key="base.id">
-                <ol-geom-point :coordinates="locObj2Ary(base)"></ol-geom-point>
+              <!-- <ol-animation-fade
+                :key="base.id"
+                v-for="(base, index) in filteredBases"
+                :duration="index * 500 + 2000"
+                :repeat="999"
+                :easing="inAndOut"
+                :hiddenStyle="animatedStyle"
+              > -->
+              <ol-feature
+                :key="base.id"
+                v-for="(base, index) in filteredBases"
+                :properties="{ id: `base-${base.id}` }"
+              >
+                <ol-geom-circle
+                  :center="locObj2Ary(base)"
+                  :radius="scaledMetres * 30"
+                ></ol-geom-circle>
                 <ol-style>
-                  <ol-style-circle :radius="4">
-                    <ol-style-fill :color="fill"></ol-style-fill>
-                    <ol-style-stroke
-                      :color="stroke"
-                      :width="strokeWidth"
-                    ></ol-style-stroke>
-                    <!-- TODO Add marker pop up-->
-                  </ol-style-circle>
+                  <ol-style-stroke color="red" :width="3"></ol-style-stroke>
+                  <ol-style-fill color="rgba(0,0,0,0)"></ol-style-fill>
+                  <ol-style-text
+                    :text="showLabels ? base.name : ''"
+                    backgroundFill="#ffffff"
+                    :padding="[5, 5, 5, 5]"
+                  ></ol-style-text>
                 </ol-style>
               </ol-feature>
+              <!-- </ol-animation-fade> -->
             </ol-source-vector>
           </ol-vector-layer>
 
-          <!-- Last TrackerLocation Positions -->
-          <ol-vector-layer>
+          <!-- Last Tracker Positions -->
+          <ol-vector-layer title="Trackers">
             <ol-source-vector>
               <template
                 v-for="trackerTrace in trackerTraces"
@@ -307,12 +355,18 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
                   <ol-geom-line-string
                     :coordinates="trackerTrace.traces"
                   ></ol-geom-line-string>
-                  <ol-style>
+                  <ol-style-flowline
+                    :color="trackerTrace.colour"
+                    color2="grey"
+                    :width="6"
+                    :width2="0"
+                  />
+                  <!-- <ol-style>
                     <ol-style-stroke
                       :color="trackerTrace.colour"
                       :width="2"
                     ></ol-style-stroke>
-                  </ol-style>
+                  </ol-style> -->
                 </ol-feature>
 
                 <ol-feature v-if="trackerTrace.traces.length >= 1">
@@ -320,12 +374,19 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
                     :coordinates="trackerTrace.traces[0]"
                   ></ol-geom-point>
                   <ol-style>
-                    <ol-style-circle :radius="radius">
-                      <ol-style-fill :color="fill"></ol-style-fill>
+                    <ol-style-circle :radius="10">
+                      <ol-style-fill
+                        :color="trackerTrace.colour"
+                      ></ol-style-fill>
                       <ol-style-stroke
-                        :color="stroke"
-                        :width="strokeWidth"
+                        color="#FFFFFF"
+                        :width="2"
                       ></ol-style-stroke>
+                      <ol-style-text
+                        :text="showLabels ? trackerTrace.tracker.name : ''"
+                        backgroundFill="#ffffff"
+                        :padding="[5, 5, 5, 5]"
+                      ></ol-style-text>
                       <!-- TODO Add marker pop up-->
                     </ol-style-circle>
                   </ol-style>
@@ -334,28 +395,33 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
             </ol-source-vector>
           </ol-vector-layer>
 
+          <ol-interaction-select
+            @select="featureSelected"
+            :condition="selectCondition"
+            :filter="selectInteactionFilter"
+          >
+            <ol-style>
+              <ol-style-stroke color="green" :width="4"></ol-style-stroke>
+              <ol-style-fill color="rgba(255,255,255,0.5)"></ol-style-fill>
+              <ol-style-icon :src="marker" :scale="0.05"></ol-style-icon>
+            </ol-style>
+          </ol-interaction-select>
+
           <!-- Placeholder info display -->
-          <ol-vector-image-layer>
+          <ol-vector-image-layer title="Dev Design">
             <ol-source-vector
               :features="basicBowLocationsParsed"
               :format="geoJson"
             ></ol-source-vector>
           </ol-vector-image-layer>
         </ol-map>
-
-        <ul>
-          <li>center : {{ currentCenter }}</li>
-          <li>resolution : {{ currentResolution }}</li>
-          <li>zoom : {{ currentZoom }}</li>
-          <li>rotation : {{ currentRotation }}</li>
-        </ul>
       </ClientOnly>
     </div>
   </div>
   <div v-else>Loading data (this may take a moment)</div>
 </template>
 
-<style scoped>
+<style>
 .container {
   /* padding: 20px; padding-bottom: 0 */
   display: flex;
@@ -394,7 +460,7 @@ const imgCopyright = ref('© <a href="http://xkcd.com/license.html">xkcd</a>');
 .vue-map-container {
   height: calc(100vh - 100px);
 }
-h3 {
+.map-controls h3 {
   border-bottom: solid 1px #555;
 }
 
@@ -421,5 +487,9 @@ h3 {
   to {
     transform: rotate(360deg);
   }
+}
+
+.ol-layerswitcher {
+  color: black !important;
 }
 </style>

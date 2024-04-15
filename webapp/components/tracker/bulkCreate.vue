@@ -15,15 +15,16 @@ const parsedTrackerData = computed((): TrackerCreateInput[] => {
     return [];
   }
 
-  const rows = trimmed.split("\n");
+  const rows = trimmed.split("\n").filter((row) => row.trim() !== "");
 
   const newTrackers: TrackerCreateInput[] = rows.map(
     (row): TrackerCreateInput => {
       const values = row.split(",");
 
       return {
-        name: values[0].trim(),
-        scoreModifier: Number(values[1]?.trim() ?? 0),
+        deviceId: values[0]?.trim(),
+        name: values[1]?.trim(),
+        scoreModifier: Number(values[2]?.trim() ?? 0),
       };
     }
   );
@@ -58,12 +59,13 @@ async function submitBulkCreate() {
         <textarea
           id="form-tracker-create"
           v-model="bulkField"
-          placeholder="name,scoreModifier"
+          placeholder="deviceId,name,scoreModifier"
         ></textarea>
       </div>
       <table>
         <thead>
           <tr>
+            <th>Device Id</th>
             <th>Name</th>
             <th>ScoreModifier</th>
             <th>Status</th>
@@ -71,6 +73,7 @@ async function submitBulkCreate() {
         </thead>
         <tbody>
           <tr v-for="(tracker, index) in parsedTrackerData" :key="index">
+            <td>{{ tracker.deviceId }}</td>
             <td>{{ tracker.name }}</td>
             <td>{{ tracker.scoreModifier }}</td>
             <td>{{ getStatus(index) }}</td>

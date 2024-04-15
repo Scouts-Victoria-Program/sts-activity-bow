@@ -81,7 +81,7 @@ export default defineEventHandler(
         if (e.code === "P2025") {
           return {
             success: false,
-            message: `Tracker with name ${body.deviceId} does not exist`,
+            message: `Tracker with deviceId ${body.deviceId} does not exist`,
           };
         }
       }
@@ -105,7 +105,7 @@ async function handleLoRaMessageUp(message: LoRaMessageUp) {
   // Get tracker from message.
   const trackerData = await prisma.tracker.findUniqueOrThrow({
     where: {
-      name: message.deviceId,
+      deviceId: message.deviceId,
     },
   });
 
@@ -116,7 +116,7 @@ async function handleLoRaMessageUp(message: LoRaMessageUp) {
   );
 
   console.log(
-    `GPS trace logged: tracker ${trackerData.name} base ${closestBase.id} distance ${closestBase.distance}`
+    `GPS trace logged: tracker ${trackerData.deviceId} base ${closestBase.id} distance ${closestBase.distance}`
   );
 
   const trackerLocationWindows = await generateTrackerLocationWindows({

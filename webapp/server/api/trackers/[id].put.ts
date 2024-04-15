@@ -26,6 +26,10 @@ export default defineEventHandler(
       return { success: false, message: `ID in body does not match url path` };
     }
 
+    if (!body?.deviceId) {
+      return { success: false, message: `Tracker does not have a deviceId` };
+    }
+
     if (!body?.name) {
       return { success: false, message: `Tracker does not have a name` };
     }
@@ -34,12 +38,14 @@ export default defineEventHandler(
       const tracker = await prisma.tracker.update({
         where: { id: Number(event.context.params.id) },
         data: {
+          deviceId: body?.deviceId,
           name: body?.name,
           scoreModifier: body?.scoreModifier,
         },
       });
       const trackerData: TrackerData = {
         id: tracker.id,
+        deviceId: tracker.deviceId,
         name: tracker.name,
         scoreModifier: tracker.scoreModifier,
       };

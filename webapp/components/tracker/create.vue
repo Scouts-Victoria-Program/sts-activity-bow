@@ -7,12 +7,14 @@ const emit = defineEmits<{
   created: [id: number];
 }>();
 const newTracker = ref<TrackerCreateInput>({
+  deviceId: "",
   name: "",
   scoreModifier: 1,
 });
 
 async function submitCreate() {
   const reqBody: TrackerCreateInput = {
+    deviceId: newTracker.value.deviceId,
     name: newTracker.value.name,
     scoreModifier: newTracker.value.scoreModifier,
   };
@@ -28,6 +30,13 @@ async function submitCreate() {
   <form>
     <fieldset>
       <legend>Create Tracker</legend>
+      <div class="form-row">
+        <label for="form-tracker-create-device-id">Tracker Device Id</label>
+        <input
+          id="form-tracker-create-device-id"
+          v-model="newTracker.deviceId"
+        />
+      </div>
       <div class="form-row">
         <label for="form-tracker-create-name">Tracker name</label>
         <input id="form-tracker-create-name" v-model="newTracker.name" />

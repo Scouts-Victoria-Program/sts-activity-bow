@@ -15,7 +15,7 @@ const parsedBaseData = computed((): BaseCreateInput[] => {
     return [];
   }
 
-  const rows = trimmed.split("\n");
+  const rows = trimmed.split("\n").filter((row) => row.trim() !== "");
 
   const newBases: BaseCreateInput[] = rows.map((row): BaseCreateInput => {
     const values = row.split(",");

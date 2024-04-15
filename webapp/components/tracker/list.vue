@@ -60,6 +60,7 @@ function trackerBulkCreated() {
       <thead>
         <tr>
           <th>id</th>
+          <th>device id</th>
           <th>name</th>
           <th>scoreModifier</th>
           <th>locations</th>
@@ -70,6 +71,7 @@ function trackerBulkCreated() {
       <tbody>
         <tr v-for="tracker in displayTrackers" :key="tracker.id">
           <td>{{ tracker.id }}</td>
+          <td>{{ tracker.deviceId }}</td>
           <td>{{ tracker.name }}</td>
           <td>x{{ tracker.scoreModifier }}</td>
           <td>

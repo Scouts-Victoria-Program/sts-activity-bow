@@ -24,12 +24,14 @@ export default defineEventHandler(
     try {
       const tracker = await prisma.tracker.create({
         data: {
+          deviceId: body?.deviceId,
           name: body?.name,
           scoreModifier: body?.scoreModifier,
         },
       });
       const trackerData: TrackerData = {
         id: tracker.id,
+        deviceId: tracker.deviceId,
         name: tracker.name,
         scoreModifier: tracker.scoreModifier,
       };

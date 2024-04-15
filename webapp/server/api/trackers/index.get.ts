@@ -39,6 +39,7 @@ export default defineEventHandler(
         trackers: trackers.map((tracker) => {
           const trackerData: TrackerData = {
             id: tracker.id,
+            deviceId: tracker.deviceId,
             name: tracker.name,
             scoreModifier: tracker.scoreModifier,
           };

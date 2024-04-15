@@ -11,17 +11,18 @@ datasource db {
 }
 
 model Base {
-  id           Int          @id @default(autoincrement())
-  name         String       @unique
-  lat          Float?
-  long         Float?
-  locations    TrackerLocation[]
-  actions      Action[]
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  lat       Float?
+  long      Float?
+  locations TrackerLocation[]
+  actions   Action[]
 }
 
 model Tracker {
-  id            Int          @id @default(autoincrement())
-  name          String       @unique
+  id            Int               @id @default(autoincrement())
+  deviceId      String            @unique
+  name          String            @unique
   scoreModifier Float
   locations     TrackerLocation[]
 }

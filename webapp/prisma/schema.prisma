@@ -17,6 +17,7 @@ model Base {
   long      Float?
   locations TrackerLocation[]
   actions   Action[]
+  bowAlerts BowAlert[]
 }
 
 model Tracker {
@@ -46,6 +47,16 @@ model Action {
   datetime    DateTime
   action      String
   score       Float
+  description String
+  base        Base     @relation(fields: [baseId], references: [id])
+  baseId      Int
+}
+
+model BowAlert {
+  id          Int      @id @default(autoincrement())
+  datetime    DateTime
+  faction     String
+  expiry      DateTime
   description String
   base        Base     @relation(fields: [baseId], references: [id])
   baseId      Int

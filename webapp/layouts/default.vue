@@ -31,6 +31,9 @@ const breadcrumbs = computed<Breadcrumb[]>(
           </li>
           <li><NuxtLink :to="`/actions`">Actions</NuxtLink></li>
           <li><NuxtLink :to="`/stats`">Stats</NuxtLink></li>
+          <li><hr /></li>
+          <li><NuxtLink :to="`/games/bow`">BOW</NuxtLink></li>
+          <li><NuxtLink :to="`/games/bow/alerts`">Alerts</NuxtLink></li>
         </ul>
       </div>
     </header>

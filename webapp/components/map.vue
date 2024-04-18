@@ -56,7 +56,7 @@ function selectAllTrackers() {
 function deselectAllTrackers() {
   trackersToShow.value = [];
 }
-const trackerLocationShownWithinMinutes = ref<number>(60);
+const trackerLocationShownWithinMinutes = ref<number>(30);
 
 const filteredBases = computed(() => {
   return Object.values(bases.value)
@@ -94,10 +94,6 @@ const trackerTraces = computed((): TrackerTraces[] => {
 
   return trackerTraces;
 });
-
-function locObj2Ary(obj: { lat?: number; long?: number }): Path {
-  return [obj.long ?? 0, obj.lat ?? 0];
-}
 
 // const initialCenter = { lat: -37.41012933716494, long: 144.6960548304394 }; // Rowallan
 // const initialCenter = { lat: -37.75014584927347, long: 144.8562113164426 }; // Burley Griffin
@@ -144,14 +140,33 @@ import marker from "@/assets/images/place_blue_24dp.svg";
 import type { BaseCreateInput } from "~/server/types/base";
 import { pointerMove } from "ol/events/condition";
 import { Fill, Stroke, Style } from "ol/style";
+import type { Layer } from "ol/layer";
+import type LayerGroup from "ol/layer/Group";
+import { locObj2Ary } from "~/composables/map";
 
-function inAndOut(x: number): number {
-  // console.log(x, x < 0.5 ? x * 2 : (1 - x) * 2, x < 0.5, x * 2, (1 - x) * 2);
-  if (x < 0.5) {
-    return x * 2;
+function inAndOut(input: number): number {
+  // restrict range, only the middle 50% will be affected
+  const x = input * 2 - 0.5;
+
+  let y: number = 0;
+  if (x < 0) {
+    y = 0;
+  } else if (x < 0.5) {
+    y = x * 2;
+  } else if (x < 1) {
+    y = (1 - x) * 2;
   } else {
-    return (1 - x) * 2;
+    y = 0;
   }
+
+  // Reduce the intensity, max 50% opacity.
+  y = y * 0.75;
+
+  // Invert output, instead of mostly off, it becomes mostly on.
+  const out = 1 - y;
+
+  // console.log("in", input, "out", out, "x", x, "y", y);
+  return out;
 }
 
 contextMenuItems.value = [
@@ -159,6 +174,14 @@ contextMenuItems.value = [
     text: "Center map here",
     callback: (val) => {
       view.value?.setCenter(val.coordinate);
+    },
+  },
+  {
+    text: "Get Coordinates",
+    callback: (val) => {
+      alert(
+        `${val.coordinate[1]},${val.coordinate[0]}\n{lat:${val.coordinate[1]},long:${val.coordinate[0]}}`
+      );
     },
   },
   {
@@ -191,23 +214,41 @@ contextMenuItems.value = [
 
 const scaledMetres = 0.0005 / 100;
 
-const selectCondition = pointerMove;
+// const selectCondition = pointerMove;
 
-const featureSelected = (event: MapBrowserEvent<PointerEvent>) => {
-  // const pixel = event.pixel;
-  // event.map.forEachFeatureAtPixel(pixel, ()=>{
+// const featureSelected = (event: MapBrowserEvent<PointerEvent>) => {
+//   // const pixel = event.pixel;
+//   // event.map.forEachFeatureAtPixel(pixel, ()=>{
 
-  // });
-  console.log("featureSelectedEvent", event);
-};
+//   // });
+//   console.log("featureSelectedEvent", event);
+// };
 
-const selectInteactionFilter = (feature: any) => {
-  console.log("selectInteactionFilter", feature);
-  return true;
-  // return feature.values_.name != undefined;
-};
+// const selectInteactionFilter = (feature: any) => {
+//   console.log("selectInteactionFilter", feature);
+//   return true;
+//   // return feature.values_.name != undefined;
+// };
 
-const showLabels = ref(false);
+const showLabels = ref(true);
+
+const layersToDisplayInSwitcher = [
+  "Dev Design",
+  "Trackers",
+  "Tracker Names",
+  "Tracker Traces",
+  "Bases",
+  "Nebula Image",
+  "Open Street Map",
+];
+
+function displayInLayerSwitcher(layer: Layer | LayerGroup) {
+  const isIncluded = layersToDisplayInSwitcher.includes(layer.get("title"));
+  if (!isIncluded) {
+    console.log(layer);
+  }
+  return isIncluded;
+}
 </script>
 
 <template>
@@ -296,56 +337,65 @@ const showLabels = ref(false);
           <ol-fullscreen-control />
           <ol-scaleline-control />
           <ol-context-menu-control :items="contextMenuItems" />
-          <ol-layerswitcher-control />
+          <ol-layerswitcher-control
+            :displayInLayerSwitcher="displayInLayerSwitcher"
+          />
 
-          <ol-tile-layer title="Open Street Map">
+          <!-- Open Street Map Layer -->
+          <ol-tile-layer title="Open Street Map" :visible="false">
             <ol-source-osm />
           </ol-tile-layer>
 
-          <ol-image-layer title="Nebula Image">
+          <!-- Nebula Image Layer -->
+          <ol-image-layer title="Nebula Image" :opacity="0.25">
             <ol-source-image-static
               :url="imageUrl"
               :imageExtent="imageExtent"
             ></ol-source-image-static>
           </ol-image-layer>
 
+          <!-- Placeholder info display Layer -->
+          <ol-vector-image-layer title="Dev Design" :visible="false">
+            <ol-source-vector
+              :features="basicBowLocationsParsed"
+              :format="geoJson"
+            ></ol-source-vector>
+          </ol-vector-image-layer>
+
           <!-- Bases -->
           <ol-vector-layer title="Bases">
             <!-- Base Circles -->
             <ol-source-vector>
-              <!-- <ol-animation-fade
+              <ol-animation-fade
                 :key="base.id"
                 v-for="(base, index) in filteredBases"
-                :duration="index * 500 + 2000"
+                :duration="index * 500 + 3000"
                 :repeat="999"
                 :easing="inAndOut"
-                :hiddenStyle="animatedStyle"
-              > -->
-              <ol-feature
-                :key="base.id"
-                v-for="(base, index) in filteredBases"
-                :properties="{ id: `base-${base.id}` }"
               >
-                <ol-geom-circle
-                  :center="locObj2Ary(base)"
-                  :radius="scaledMetres * 30"
-                ></ol-geom-circle>
-                <ol-style>
-                  <ol-style-stroke color="red" :width="3"></ol-style-stroke>
-                  <ol-style-fill color="rgba(0,0,0,0)"></ol-style-fill>
-                  <ol-style-text
-                    :text="showLabels ? base.name : ''"
-                    backgroundFill="#ffffff"
-                    :padding="[5, 5, 5, 5]"
-                  ></ol-style-text>
-                </ol-style>
-              </ol-feature>
-              <!-- </ol-animation-fade> -->
+                <ol-feature :properties="{ id: `base-${base.id}` }">
+                  <ol-geom-circle
+                    :center="locObj2Ary(base)"
+                    :radius="scaledMetres * 30"
+                  ></ol-geom-circle>
+                  <ol-style>
+                    <ol-style-stroke color="blue" :width="3"></ol-style-stroke>
+                    <ol-style-fill color="rgba(0,0,0,0)"></ol-style-fill>
+                    <ol-style-text
+                      :text="showLabels ? base.name : ''"
+                      fill="white"
+                      backgroundFill="blue"
+                      :padding="[5, 5, 5, 5]"
+                      :scale="2"
+                    ></ol-style-text>
+                  </ol-style>
+                </ol-feature>
+              </ol-animation-fade>
             </ol-source-vector>
           </ol-vector-layer>
 
           <!-- Last Tracker Positions -->
-          <ol-vector-layer title="Trackers">
+          <ol-vector-layer title="Tracker Traces">
             <ol-source-vector>
               <template
                 v-for="trackerTrace in trackerTraces"
@@ -368,13 +418,23 @@ const showLabels = ref(false);
                     ></ol-style-stroke>
                   </ol-style> -->
                 </ol-feature>
+              </template>
+            </ol-source-vector>
+          </ol-vector-layer>
 
+          <!-- Last Tracker Positions -->
+          <ol-vector-layer title="Tracker Names">
+            <ol-source-vector>
+              <template
+                v-for="trackerTrace in trackerTraces"
+                :key="trackerTrace.tracker.id"
+              >
                 <ol-feature v-if="trackerTrace.traces.length >= 1">
                   <ol-geom-point
                     :coordinates="trackerTrace.traces[0]"
                   ></ol-geom-point>
                   <ol-style>
-                    <ol-style-circle :radius="10">
+                    <ol-style-circle :radius="15">
                       <ol-style-fill
                         :color="trackerTrace.colour"
                       ></ol-style-fill>
@@ -382,20 +442,23 @@ const showLabels = ref(false);
                         color="#FFFFFF"
                         :width="2"
                       ></ol-style-stroke>
-                      <ol-style-text
-                        :text="showLabels ? trackerTrace.tracker.name : ''"
-                        backgroundFill="#ffffff"
-                        :padding="[5, 5, 5, 5]"
-                      ></ol-style-text>
-                      <!-- TODO Add marker pop up-->
                     </ol-style-circle>
+                    <ol-style-text
+                      :text="showLabels ? trackerTrace.tracker.name : ''"
+                      fill="black"
+                      :backgroundFill="trackerTrace.colour"
+                      :backgroundStroke="{ color: 'white', width: 2 }"
+                      :padding="[5, 5, 5, 5]"
+                      :offsetY="-15"
+                      :scale="2"
+                    ></ol-style-text>
                   </ol-style>
                 </ol-feature>
               </template>
             </ol-source-vector>
           </ol-vector-layer>
 
-          <ol-interaction-select
+          <!-- <ol-interaction-select
             @select="featureSelected"
             :condition="selectCondition"
             :filter="selectInteactionFilter"
@@ -405,15 +468,9 @@ const showLabels = ref(false);
               <ol-style-fill color="rgba(255,255,255,0.5)"></ol-style-fill>
               <ol-style-icon :src="marker" :scale="0.05"></ol-style-icon>
             </ol-style>
-          </ol-interaction-select>
+          </ol-interaction-select> -->
 
-          <!-- Placeholder info display -->
-          <ol-vector-image-layer title="Dev Design">
-            <ol-source-vector
-              :features="basicBowLocationsParsed"
-              :format="geoJson"
-            ></ol-source-vector>
-          </ol-vector-image-layer>
+          <slot></slot>
         </ol-map>
       </ClientOnly>
     </div>

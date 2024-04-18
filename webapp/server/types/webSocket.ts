@@ -1,17 +1,17 @@
 import { ActionData } from "./action";
 import { TrackerLocationData } from "./trackerLocation";
-import { LogData } from "./log";
 import { BaseData } from "./base";
 import { TrackerData } from "./tracker";
+import { BowAlertData } from "./bowAlert";
 
 export const SocketServerRoomToken = "socket-server-room-token";
 
 export type MessageData =
   | MessageDataAction
+  | MessageDataBowAlert
   | MessageDataTrackerLocation
   | MessageDataBase
   | MessageDataTracker
-  | MessageDataLog
   | MessageDataStatus;
 
 export type MessageDataAction =
@@ -24,6 +24,18 @@ export type MessageDataAction =
       type: "action";
       action: "delete";
       actionId: number;
+    };
+
+export type MessageDataBowAlert =
+  | {
+      type: "bowAlert";
+      action: "create" | "update";
+      bowAlert: BowAlertData;
+    }
+  | {
+      type: "bowAlert";
+      action: "delete";
+      bowAlertId: number;
     };
 
 export type MessageDataTrackerLocation =
@@ -60,18 +72,6 @@ export type MessageDataTracker =
       type: "tracker";
       action: "delete";
       trackerId: number;
-    };
-
-export type MessageDataLog =
-  | {
-      type: "log";
-      action: "create" | "update";
-      log: LogData;
-    }
-  | {
-      type: "log";
-      action: "delete";
-      logId: number;
     };
 
 export type MessageDataStatus = {
